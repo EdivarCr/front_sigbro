@@ -1,8 +1,187 @@
 @import "tailwindcss";
 
 /* ========================================================================
-   SisBro v2.0 — Estilos Globais & Responsividade
+   SisBro v0.1 — Estilos Globais & Responsividade
    ======================================================================== */
+
+/* Fontes — Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;700&display=swap');
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/jetbrains-mono";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Design System — Tokens registrados no Tailwind v4 */
+@theme {
+  /* --- Fontes --- */
+  --font-heading: 'Archivo', sans-serif;
+  --font-body: 'IBM Plex Sans', sans-serif;
+
+  /* --- Cor de Marca (fixa, igual em light e dark) --- */
+  --color-brand: #A4133C;
+  --color-brand-hover: #AD2A4F;
+  --color-brand-selected: #B23659;
+  --color-brand-disabled: #E1E1E1;
+  --color-brand-bg: #A4133C;
+
+  /* --- Paleta base (cores brutas, para referência) --- */
+  --color-palette-wine-dark: #A74F68;
+  --color-palette-gray-mid: #726267;
+  --color-palette-black: #1A1A1A;
+  --color-palette-white: #F6F6F6;
+  --color-palette-slate: #4B5563;
+  --color-palette-slate-light: #9CA3AF;
+  --color-palette-gray-light: #E1E1E1;
+  --color-palette-gray-lighter: #F1F1F1;
+
+  /* --- Espaçamentos (baseados no grid de 8px) --- */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-ms: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-1-5xl: 48px;
+  --spacing-2xl: 64px;
+
+  /* --- Bordas --- */
+  --border-thin: 1px;
+  --border-bold: 2px;
+
+  /* --- Border radius (reutiliza espaçamentos) --- */
+  --radius-sm: 8px;   /* botões, inputs, cards */
+  --radius-xs: 4px;   /* etiquetas, badges */
+}
+
+/* Tema Claro (padrão) */
+:root {
+  /* Backgrounds */
+  --bg-primary: #F6F6F6;
+  --bg-surface: #F1F1F1;
+  --bg-sidebar: #EBEBEB;
+  --bg-sidebar-hover: #E5E5E5;
+
+  /* Textos */
+  --txt-primary: #1A1A1A;
+  --txt-secondary: #4B5563;
+  --txt-on-brand: #F6F6F6;
+  --txt-link: #A4133C;
+  --txt-disabled: #B5B7B9;
+  --txt-placeholder: #B5B7B9;
+
+  /* Feedback semântico */
+  --color-green: #045D44;
+  --color-red: #991B1B;
+  --color-yellow: #7B4305;
+  --color-blue: #1E40AF;
+
+  /* Bordas */
+  --border-default: #4B5563;
+  --border-input: #4B5563;
+  --border-active: #A4133C;
+
+  /* Brand states no tema claro */
+  --brand-primary-default: #1A1A1A;
+  --brand-primary-hover: #202020;
+  --brand-primary-selected: #262626;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+/* Tema Escuro — ativado pela classe .dark no <html> */
+.dark {
+  /* Backgrounds */
+  --bg-primary: #1A1A1A;
+  --bg-surface: #202020;
+  --bg-sidebar: #222222;
+  --bg-sidebar-hover: #282828;
+
+  /* Textos */
+  --txt-primary: #F6F6F6;
+  --txt-secondary: #EBEBEB;
+  --txt-on-brand: #F6F6F6;
+  --txt-link: #A4133C;
+  --txt-disabled: #B5B7B9;
+  --txt-placeholder: #EBEBEB;
+
+  /* Feedback semântico */
+  --color-green: #99FFB3;
+  --color-red: #FFB3B3;
+  --color-yellow: #FFF176;
+  --color-blue: #B3E5FC;
+
+  /* Bordas */
+  --border-default: #EBEBEB;
+  --border-input: #F1F1F1;
+  --border-active: #A4133C;
+
+  /* Brand states no tema escuro */
+  --brand-primary-default: #F6F6F6;
+  --brand-primary-hover: #F0F0F0;
+  --brand-primary-selected: #EAEAEA;
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
 
 /* Reset base */
 *,
@@ -15,7 +194,7 @@
 
 /* Tipografia padrão */
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -81,6 +260,7 @@ html {
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -88,6 +268,7 @@ html {
 .line-clamp-3 {
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -121,5 +302,60 @@ html {
     padding-left: 2rem;
     padding-right: 2rem;
     max-width: 1280px;
+  }
+}
+
+@theme inline {
+  --font-heading: var(--font-mono);
+  --font-mono: 'JetBrains Mono Variable', monospace;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-mono;
   }
 }
