@@ -4,6 +4,7 @@ import { createBrowserRouter } from 'react-router-dom'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { PublicLayout } from '@/components/layout/PublicLayout'
 import { ProtectedRoute } from '@/components/shared/ProtectedRoute'
+import { AuthLayout } from '@/components/layout/AuthLayout'
 
 // Páginas públicas
 import CatalogoPage from '@/pages/Catalogo'
@@ -24,15 +25,20 @@ export const router = createBrowserRouter([
   // Rotas Públicas (sem autenticação)
   // -----------------------------------------------------------------------
   {
+    element: <AuthLayout />,
+    children: [
+      {
+        path: '/login',
+        element: <LoginPage />,
+      },
+    ],
+  },
+  {
     element: <PublicLayout />,
     children: [
       {
         path: '/catalogo',
         element: <CatalogoPage />,
-      },
-      {
-        path: '/login',
-        element: <LoginPage />,
       },
     ],
   },

@@ -24,10 +24,10 @@ export function InputPassword({
     <div className="flex flex-col gap-1">
       {/* Label — só aparece se for passado */}
       {label && (
-        <label className="text-sm font-medium text-(--txt-primary)">
+        <label className="text-body-sm text-(--txt-secondary) text-body-sm">
           {label}
           {required && (
-            <span className="ml-1 text-(--color-brand)">*</span>
+            <span className="ml-1 text-brand">*</span>
           )}
         </label>
       )}
@@ -37,10 +37,11 @@ export function InputPassword({
         {/* Input */}
         <input
           type={isVisible ? "text" : "password"}
+          autoComplete="current-password"
           className={cn(
             // Base
-            "w-full rounded-lg border bg-transparent px-2 py-2 text-sm",
-            "text-(--txt-primary) placeholder:text-(--txt-placeholder) pr-8",
+            "w-full rounded-sm border bg-(--bg-surface) text-body-md h-12 px-2",
+            "text-(--txt-primary) placeholder:text-(--txt-placeholder)",
             // Borda padrão
             "border-(--border-input)",
             // Hover
@@ -59,7 +60,7 @@ export function InputPassword({
         <button
           type="button"
           onClick={() => setIsVisible(!isVisible)}
-          className="absolute right-2 text-(--txt-secondary)"
+          className="absolute right-2 z-10 text-(--txt-secondary) cursor-pointer"
         >
           {isVisible ? <EyeSlashIcon size={16} /> : <EyeIcon size={16} />}
         </button>
