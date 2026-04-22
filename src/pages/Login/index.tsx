@@ -4,12 +4,14 @@
   import { Button } from "@/components/ui/button"
   import heroBanner from "@/assets/images/hero.jpg"
   import logo from "@/assets/images/base-logo-v1.png"
+  import { ArrowUDownLeftIcon } from "@phosphor-icons/react"
 
   type AuthView = "login" | "register" | "forgot" | "email-sent"
 
   export default function LoginPage() {
     const [view, setView] = useState<AuthView>("login")
-    const [emailError, setEmailError] = useState<string>("");
+    const [loginEmailError, setLoginEmailError] = useState<string>("")
+  const [forgotEmailError, setForgotEmailError] = useState<string>("")
     const isValidEmail = (email: string) => {
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
     }
@@ -51,12 +53,12 @@
                 onBlur={(event) => {
                   const email = event.target.value
                   if (!isValidEmail(email)) {
-                    setEmailError("E-mail inválido")
+                    setLoginEmailError("E-mail inválido")
                   } else {
-                    setEmailError("")
+                    setLoginEmailError("")
                   }
                 }}
-                error={emailError}
+                error={loginEmailError}
               />
               <div className="flex flex-col gap-1">
                 <InputPassword
@@ -80,6 +82,79 @@
             </Button>
 
             
+          </div>
+        )}
+
+        {view === "forgot" && (
+          <div className="w-full flex flex-col gap-8">
+            <div className="flex flex-col gap-4">
+              <Button 
+              className="w-fit"
+              size="md"
+              variant="outlined"
+              onClick={() => setView("login")}
+              >
+                <ArrowUDownLeftIcon />
+                Voltar
+              </Button>
+              <h1 className="text-h1 text-(--txt-primary)">
+                Recuperação de Senha
+              </h1>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <p className="text-body-md text-(--txt-secondary)">Insira seu e-mail cadastrado. Um e-mail será enviado para você redefinir sua senha.</p>
+              <Input
+                label="E-mail"
+                type="email"
+                placeholder="janedoe@email.com"
+                onBlur={(event) => {
+                  const email = event.target.value
+                  if (!isValidEmail(email)) {
+                    setForgotEmailError("E-mail inválido")
+                  } else {
+                    setForgotEmailError("")
+                  }
+                }}
+                error={forgotEmailError}
+              />
+            </div>
+
+            <Button 
+              className="w-full"
+              size="lg"
+              onClick={() => setView("email-sent")}
+            >
+              Enviar E-mail
+            </Button>
+          </div>
+        )}
+
+        {view === "email-sent" && (
+          <div className="w-full flex flex-col gap-8">
+            <div className="flex flex-col gap-4">
+              <Button 
+              className="w-fit"
+              size="md"
+              variant="outlined"
+              onClick={() => setView("login")}
+              >
+                <ArrowUDownLeftIcon />
+                Voltar
+              </Button>
+              <h1 className="text-h1 text-(--txt-primary)">
+                E-mail enviado
+              </h1>
+            </div>
+
+            <p className="text-body-md text-(--txt-secondary)">E-mail de recuperação enviado para janedoe@email.com.</p> {/*TODO: Mudar para variável posteriormente*/}
+            <Button 
+              className="w-full"
+              size="lg"
+              onClick={() => setView("login")}
+            >
+              Voltar para a Tela de Login
+            </Button>
           </div>
         )}
 
