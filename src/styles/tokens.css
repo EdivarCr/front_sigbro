@@ -1,0 +1,78 @@
+@theme {
+  --font-heading: 'Archivo', sans-serif;
+  --font-sans: 'IBM Plex Sans', sans-serif;
+
+  --color-brand: #A4133C;
+  --color-brand-hover: #AD2A4F;
+  --color-brand-selected: #B23659;
+  --color-brand-disabled: #E1E1E1;
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-ms: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-1-5xl: 48px;
+  --spacing-2xl: 64px;
+
+  --border-thin: 1px;
+  --border-bold: 2px;
+
+  --radius-sm: 8px;
+  --radius-xs: 4px;
+}
+
+:root {
+  --bg-primary: #F6F6F6;
+  --bg-surface: #F1F1F1;
+  --bg-sidebar: #EBEBEB;
+  --bg-sidebar-hover: #E5E5E5;
+
+  --txt-primary: #1A1A1A;
+  --txt-secondary: #4B5563;
+  --txt-on-brand: #F6F6F6;
+  --txt-link: #A4133C;
+  --txt-disabled: #B5B7B9;
+  --txt-placeholder: #B5B7B9;
+
+  --color-green: #045D44;
+  --color-red: #991B1B;
+  --color-yellow: #7B4305;
+  --color-blue: #1E40AF;
+
+  --border-default: #4B5563;
+  --border-input: #4B5563;
+  --border-active: #A4133C;
+
+  --brand-primary-default: #1A1A1A;
+  --brand-primary-hover: #202020;
+  --brand-primary-selected: #262626;
+}
+
+.dark {
+  --bg-primary: #1A1A1A;
+  --bg-surface: #202020;
+  --bg-sidebar: #222222;
+  --bg-sidebar-hover: #282828;
+
+  --txt-primary: #F6F6F6;
+  --txt-secondary: #EBEBEB;
+  --txt-on-brand: #F6F6F6;
+  --txt-link: #A4133C;
+  --txt-disabled: #B5B7B9;
+  --txt-placeholder: #B5B7B9;
+
+  --color-green: #99FFB3;
+  --color-red: #FFB3B3;
+  --color-yellow: #FFF176;
+  --color-blue: #B3E5FC;
+
+  --border-default: #EBEBEB;
+  --border-input: #F1F1F1;
+  --border-active: #A4133C;
+
+  --brand-primary-default: #F6F6F6;
+  --brand-primary-hover: #F0F0F0;
+  --brand-primary-selected: #EAEAEA;
+}
