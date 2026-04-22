@@ -5,6 +5,7 @@
   import heroBanner from "@/assets/images/hero.jpg"
   import logo from "@/assets/images/base-logo-v1.png"
   import { ArrowUDownLeftIcon } from "@phosphor-icons/react"
+import { Checkbox } from "@/components/ui/checkbox"
 
   type AuthView = "login" | "register" | "forgot" | "email-sent"
 
@@ -75,6 +76,7 @@
               </div>
 
               {/*Checkbox rememember-me*/}
+              <Checkbox label="Lembrar de Mim" />
             </div>
 
             <Button className="w-full" size="lg">
