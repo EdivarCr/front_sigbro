@@ -1,21 +1,21 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter } from "react-router-dom"
 
 // Layouts
-import { MainLayout } from '@/components/layout/MainLayout'
-import { PublicLayout } from '@/components/layout/PublicLayout'
-import { ProtectedRoute } from '@/components/shared/ProtectedRoute'
-import { AuthLayout } from '@/components/layout/AuthLayout'
+import { MainLayout } from "@/components/layout/MainLayout"
+import { PublicLayout } from "@/components/layout/PublicLayout"
+import { ProtectedRoute } from "@/components/shared/ProtectedRoute"
+import { AuthLayout } from "@/components/layout/AuthLayout"
 
 // Páginas públicas
-import CatalogoPage from '@/pages/Catalogo'
-import LoginPage from '@/pages/Login'
+import CatalogoPage from "@/pages/Catalogo"
+import LoginPage from "@/pages/Login"
 
 // Páginas protegidas
-import DashboardPage from '@/pages/Dashboard'
-import ProdutosPage from '@/pages/Produtos'
-import VendasPage from '@/pages/Vendas'
-import EstoquePage from '@/pages/Estoque'
-import PDVsPage from '@/pages/PDVs'
+import DashboardPage from "@/pages/Dashboard"
+import ProdutosPage from "@/pages/Produtos"
+import VendasPage from "@/pages/Vendas"
+import EstoquePage from "@/pages/Estoque"
+import PDVsPage from "@/pages/PDVs"
 
 // ==========================================================================
 // Configuração centralizada de rotas
@@ -28,7 +28,7 @@ export const router = createBrowserRouter([
     element: <AuthLayout />,
     children: [
       {
-        path: '/login',
+        path: "/login",
         element: <LoginPage />,
       },
     ],
@@ -37,7 +37,7 @@ export const router = createBrowserRouter([
     element: <PublicLayout />,
     children: [
       {
-        path: '/catalogo',
+        path: "/catalogo",
         element: <CatalogoPage />,
       },
     ],
@@ -53,27 +53,27 @@ export const router = createBrowserRouter([
         element: <MainLayout />,
         children: [
           {
-            path: '/',
+            path: "/",
             element: <DashboardPage />,
           },
           {
-            path: '/dashboard',
+            path: "/dashboard",
             element: <DashboardPage />,
           },
           {
-            path: '/produtos',
+            path: "/produtos",
             element: <ProdutosPage />,
           },
           {
-            path: '/vendas',
+            path: "/vendas",
             element: <VendasPage />,
           },
           {
-            path: '/estoque',
+            path: "/estoque",
             element: <EstoquePage />,
           },
           {
-            path: '/pdvs',
+            path: "/pdvs",
             element: <PDVsPage />,
           },
         ],

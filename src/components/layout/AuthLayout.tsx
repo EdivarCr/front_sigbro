@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom'
+import { Outlet } from "react-router-dom"
 
 /**
  * Layout para telas de autenticação (Login).

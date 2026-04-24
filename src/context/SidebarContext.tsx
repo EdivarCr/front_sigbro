@@ -1,5 +1,12 @@
-import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react'
-import { useBreakpoint } from '@/hooks/useBreakpoint'
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  type ReactNode,
+} from "react"
+import { useBreakpoint } from "@/hooks/useBreakpoint"
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -14,7 +21,9 @@ interface SidebarContextData {
 // ---------------------------------------------------------------------------
 // Contexto
 // ---------------------------------------------------------------------------
-const SidebarContext = createContext<SidebarContextData>({} as SidebarContextData)
+const SidebarContext = createContext<SidebarContextData>(
+  {} as SidebarContextData
+)
 
 // ---------------------------------------------------------------------------
 // Provider
@@ -47,7 +56,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
 export function useSidebar() {
   const context = useContext(SidebarContext)
   if (!context) {
-    throw new Error('useSidebar deve ser usado dentro de um SidebarProvider')
+    throw new Error("useSidebar deve ser usado dentro de um SidebarProvider")
   }
   return context
 }

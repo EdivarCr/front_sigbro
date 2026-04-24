@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { Outlet, Link } from 'react-router-dom'
-import { useBreakpoint } from '@/hooks/useBreakpoint'
+import { useState } from "react"
+import { Outlet, Link } from "react-router-dom"
+import { useBreakpoint } from "@/hooks/useBreakpoint"
 
 /**
  * Layout para rotas públicas (Catálogo, Login, etc.).
@@ -50,11 +50,25 @@ export function PublicLayout() {
               className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
               aria-label="Menu"
             >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
                 {menuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
                 )}
               </svg>
             </button>

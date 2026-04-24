@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useContext, useState, type ReactNode } from "react"
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -15,7 +15,7 @@ interface CartContextData {
   items: CartItem[]
   totalItens: number
   totalPreco: number
-  addItem: (item: Omit<CartItem, 'quantidade'>) => void
+  addItem: (item: Omit<CartItem, "quantidade">) => void
   removeItem: (id: string) => void
   updateQuantidade: (id: string, quantidade: number) => void
   clearCart: () => void
@@ -33,9 +33,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
 
   const totalItens = items.reduce((acc, item) => acc + item.quantidade, 0)
-  const totalPreco = items.reduce((acc, item) => acc + item.preco * item.quantidade, 0)
+  const totalPreco = items.reduce(
+    (acc, item) => acc + item.preco * item.quantidade,
+    0
+  )
 
-  function addItem(newItem: Omit<CartItem, 'quantidade'>) {
+  function addItem(newItem: Omit<CartItem, "quantidade">) {
     setItems((prev) => {
       const existing = prev.find((i) => i.id === newItem.id)
       if (existing) {
@@ -67,7 +70,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   return (
     <CartContext.Provider
-      value={{ items, totalItens, totalPreco, addItem, removeItem, updateQuantidade, clearCart }}
+      value={{
+        items,
+        totalItens,
+        totalPreco,
+        addItem,
+        removeItem,
+        updateQuantidade,
+        clearCart,
+      }}
     >
       {children}
     </CartContext.Provider>
@@ -80,7 +91,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 export function useCart() {
   const context = useContext(CartContext)
   if (!context) {
-    throw new Error('useCart deve ser usado dentro de um CartProvider')
+    throw new Error("useCart deve ser usado dentro de um CartProvider")
   }
   return context
 }

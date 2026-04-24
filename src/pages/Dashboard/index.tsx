@@ -1,7 +1,9 @@
 export default function DashboardPage() {
   return (
     <div>
-      <h1 className="text-xl font-bold text-gray-900 sm:text-2xl dark:text-white">Dashboard</h1>
+      <h1 className="text-xl font-bold text-gray-900 sm:text-2xl dark:text-white">
+        Dashboard
+      </h1>
       <p className="mt-1 text-sm text-gray-600 sm:mt-2 dark:text-gray-400">
         Visão geral do sistema — produção, vendas e estoque.
       </p>
@@ -9,10 +11,10 @@ export default function DashboardPage() {
       {/* Placeholder — cards de métricas responsivos */}
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          { label: 'Vendas Hoje', valor: 'R$ 1.250', icon: '💰' },
-          { label: 'Produtos Ativos', valor: '42', icon: '🌶️' },
-          { label: 'Estoque Baixo', valor: '7', icon: '⚠️' },
-          { label: 'PDVs Ativos', valor: '12', icon: '🏪' },
+          { label: "Vendas Hoje", valor: "R$ 1.250", icon: "💰" },
+          { label: "Produtos Ativos", valor: "42", icon: "🌶️" },
+          { label: "Estoque Baixo", valor: "7", icon: "⚠️" },
+          { label: "PDVs Ativos", valor: "12", icon: "🏪" },
         ].map((card) => (
           <div
             key={card.label}

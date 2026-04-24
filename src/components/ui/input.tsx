@@ -26,15 +26,12 @@ export function Input({
       {label && (
         <label className="text-body-sm text-(--txt-secondary)">
           {label}
-          {required && (
-            <span className="ml-1 text-brand text-body-sm">*</span>
-          )}
+          {required && <span className="text-brand text-body-sm ml-1">*</span>}
         </label>
       )}
 
       {/* Wrapper do input — posiciona ícones */}
       <div className="relative flex items-center">
-
         {/* Ícone esquerdo */}
         {iconLeft && (
           <div className="absolute left-2 text-(--txt-secondary)">
@@ -46,16 +43,16 @@ export function Input({
         <input
           className={cn(
             // Base
-            "w-full rounded-sm border bg-(--bg-surface) text-body-md h-12 px-2",
+            "text-body-md h-12 w-full rounded-sm border bg-(--bg-surface) px-2",
             "text-(--txt-primary) placeholder:text-(--txt-placeholder)",
             // Borda padrão
             "border-(--border-input)",
             // Hover
             "hover:border-(--txt-secondary)",
             // Focus
-            "focus:outline-none focus:border-(--border-active)",
+            "focus:border-(--border-active) focus:outline-none",
             // Disabled
-            "disabled:opacity-50 disabled:cursor-not-allowed",
+            "disabled:cursor-not-allowed disabled:opacity-50",
             // Erro
             error && "border-(--color-red)",
             // Padding extra quando tem ícone
@@ -76,12 +73,12 @@ export function Input({
 
       {/* Helper ou mensagem de erro */}
       {(helper || error) && (
-        <span className={cn(
-          "text-xs",
-          error
-            ? "text-(--color-red)"
-            : "text-(--txt-secondary)"
-        )}>
+        <span
+          className={cn(
+            "text-xs",
+            error ? "text-(--color-red)" : "text-(--txt-secondary)"
+          )}
+        >
           {error ?? helper}
         </span>
       )}

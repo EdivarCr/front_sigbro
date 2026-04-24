@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react"
 
 /**
  * Hook que escuta uma media query CSS e retorna se está ativa.
@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react'
  */
 export function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       return window.matchMedia(query).matches
     }
     return false
@@ -23,8 +23,8 @@ export function useMediaQuery(query: string): boolean {
     setMatches(mediaQuery.matches)
 
     // Escuta mudanças
-    mediaQuery.addEventListener('change', handler)
-    return () => mediaQuery.removeEventListener('change', handler)
+    mediaQuery.addEventListener("change", handler)
+    return () => mediaQuery.removeEventListener("change", handler)
   }, [query])
 
   return matches

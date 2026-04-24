@@ -1,7 +1,7 @@
-import { RouterProvider } from 'react-router-dom'
-import { AuthProvider } from '@/context/AuthContext'
-import { CartProvider } from '@/context/CartContext'
-import { router } from '@/routes'
+import { RouterProvider } from "react-router-dom"
+import { AuthProvider } from "@/context/AuthContext"
+import { CartProvider } from "@/context/CartContext"
+import { router } from "@/routes"
 
 /**
  * App — Ponto de entrada da aplicação.

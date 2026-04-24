@@ -24,11 +24,9 @@ export function InputPassword({
     <div className="flex flex-col gap-1">
       {/* Label — só aparece se for passado */}
       {label && (
-        <label className="text-body-sm text-(--txt-secondary) text-body-sm">
+        <label className="text-body-sm text-body-sm text-(--txt-secondary)">
           {label}
-          {required && (
-            <span className="ml-1 text-brand">*</span>
-          )}
+          {required && <span className="text-brand ml-1">*</span>}
         </label>
       )}
 
@@ -40,16 +38,16 @@ export function InputPassword({
           autoComplete="current-password"
           className={cn(
             // Base
-            "w-full rounded-sm border bg-(--bg-surface) text-body-md h-12 px-2",
+            "text-body-md h-12 w-full rounded-sm border bg-(--bg-surface) px-2",
             "text-(--txt-primary) placeholder:text-(--txt-placeholder)",
             // Borda padrão
             "border-(--border-input)",
             // Hover
             "hover:border-(--txt-secondary)",
             // Focus
-            "focus:outline-none focus:border-(--border-active)",
+            "focus:border-(--border-active) focus:outline-none",
             // Disabled
-            "disabled:opacity-50 disabled:cursor-not-allowed",
+            "disabled:cursor-not-allowed disabled:opacity-50",
             // Erro
             error && "border-(--color-red)",
             className
@@ -60,7 +58,7 @@ export function InputPassword({
         <button
           type="button"
           onClick={() => setIsVisible(!isVisible)}
-          className="absolute right-2 z-10 text-(--txt-secondary) cursor-pointer"
+          className="absolute right-2 z-10 cursor-pointer text-(--txt-secondary)"
         >
           {isVisible ? <EyeSlashIcon size={16} /> : <EyeIcon size={16} />}
         </button>
@@ -68,12 +66,12 @@ export function InputPassword({
 
       {/* Helper ou mensagem de erro */}
       {(helper || error) && (
-        <span className={cn(
-          "text-xs",
-          error
-            ? "text-(--color-red)"
-            : "text-(--txt-secondary)"
-        )}>
+        <span
+          className={cn(
+            "text-xs",
+            error ? "text-(--color-red)" : "text-(--txt-secondary)"
+          )}
+        >
           {error ?? helper}
         </span>
       )}

@@ -1,6 +1,7 @@
 /* Safe areas — respeita o notch do iPhone */
 html {
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 body {
@@ -20,13 +21,24 @@ body {
   }
 }
 
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
 
 .scrollbar-hidden {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-.scrollbar-hidden::-webkit-scrollbar { display: none; }
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}

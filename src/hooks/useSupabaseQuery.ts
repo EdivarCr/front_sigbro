@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from 'react'
-import { supabase } from '@/services/supabase/client'
+import { useEffect, useState, useCallback } from "react"
+import { supabase } from "@/services/supabase/client"
 
 /**
  * Hook genérico para consultas ao Supabase.
@@ -9,7 +9,7 @@ import { supabase } from '@/services/supabase/client'
  */
 export function useSupabaseQuery<T = unknown>(
   table: string,
-  select = '*',
+  select = "*",
   filters?: Record<string, unknown>
 ) {
   const [data, setData] = useState<T[]>([])

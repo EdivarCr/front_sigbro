@@ -8,7 +8,7 @@ interface TextareaProps {
   className?: string
 }
 
-export function Textarea ({
+export function Textarea({
   label,
   helper,
   error,
@@ -22,9 +22,7 @@ export function Textarea ({
       {label && (
         <label className="text-sm font-medium text-(--txt-primary)">
           {label}
-          {required && (
-            <span className="ml-1 text-(--color-brand)">*</span>
-          )}
+          {required && <span className="ml-1 text-(--color-brand)">*</span>}
         </label>
       )}
 
@@ -32,15 +30,15 @@ export function Textarea ({
         className={cn(
           // Base
           "w-full rounded-lg border bg-transparent px-2 py-2 text-sm",
-            "text-(--txt-primary) placeholder:text-(--txt-placeholder)",
+          "text-(--txt-primary) placeholder:text-(--txt-placeholder)",
           // Borda padrão
           "border-(--border-input)",
           // Hover
           "hover:border-(--txt-secondary)",
           // Focus
-          "focus:outline-none focus:border-(--border-active)",
+          "focus:border-(--border-active) focus:outline-none",
           // Disabled
-          "disabled:opacity-50 disabled:cursor-not-allowed",
+          "disabled:cursor-not-allowed disabled:opacity-50",
           // Sem redimensionamento manual
           "resize-none",
           // Erro
@@ -52,12 +50,12 @@ export function Textarea ({
 
       {/* Helper ou mensagem de erro */}
       {(helper || error) && (
-        <span className={cn(
-          "text-xs",
-          error
-            ? "text-(--color-red)"
-            : "text-(--txt-secondary)"
-        )}>
+        <span
+          className={cn(
+            "text-xs",
+            error ? "text-(--color-red)" : "text-(--txt-secondary)"
+          )}
+        >
           {error ?? helper}
         </span>
       )}
