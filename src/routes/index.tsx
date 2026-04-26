@@ -44,6 +44,19 @@ export const router = createBrowserRouter([
   },
 
   // -----------------------------------------------------------------------
+  // Rotas temporárias para desenvolvimento (remover depois)
+  // -----------------------------------------------------------------------
+  {
+    element: <MainLayout />,
+    children: [
+      {
+        path: "/dev",
+        element: <DashboardPage />,
+      },
+    ],
+  },
+
+  // -----------------------------------------------------------------------
   // Rotas Protegidas (requerem autenticação)
   // -----------------------------------------------------------------------
   {

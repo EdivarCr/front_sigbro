@@ -30,15 +30,16 @@ const SidebarContext = createContext<SidebarContextData>(
 // ---------------------------------------------------------------------------
 export function SidebarProvider({ children }: { children: ReactNode }) {
   const { shouldCollapseSidebar } = useBreakpoint()
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(!shouldCollapseSidebar)
 
   const toggle = useCallback(() => setIsOpen((prev) => !prev), [])
   const open = useCallback(() => setIsOpen(true), [])
   const close = useCallback(() => setIsOpen(false), [])
 
-  // Fecha automaticamente ao redimensionar para desktop
   useEffect(() => {
     if (!shouldCollapseSidebar) {
+      setIsOpen(true)
+    } else {
       setIsOpen(false)
     }
   }, [shouldCollapseSidebar])
