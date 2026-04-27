@@ -1,4 +1,13 @@
+import { Breadcrumb } from "@/components/ui/breadcrumb"
+
 export default function DashboardPage() {
+  ;<Breadcrumb
+    items={[
+      { label: "Tela Inicial", to: "/dashboard" },
+      { label: "Perfil de Usuário" },
+    ]}
+  />
+
   return (
     <div>
       <h1 className="text-h1 text-(--txt-primary)">Dashboard</h1>

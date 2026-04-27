@@ -31,12 +31,12 @@ export function MainLayout() {
 function Header() {
   const { toggle } = useSidebar()
   const { isDark, toggle: toggleTheme } = useTheme()
-  
+
   return (
     <header className="flex h-20 shrink-0 items-center justify-between bg-(--bg-primary)">
       <button
         onClick={toggle}
-        className="rounded-sm text-(--txt-secondary) hover:bg-(--bg-surface) cursor-pointer"
+        className="cursor-pointer rounded-sm text-(--txt-secondary) hover:bg-(--bg-surface)"
         aria-label="Abrir menu"
       >
         <ListIcon size={32} />
@@ -48,15 +48,17 @@ function Header() {
           Modo Escuro:
         </span>
         <button
-          className={ `relative h-6 w-11 rounded-full transition-colors cursor-pointer ${
+          className={`relative h-6 w-11 cursor-pointer rounded-full transition-colors ${
             isDark ? "bg-brand" : "bg-(--border-default)"
           }`}
           aria-label="Alternar tema"
           onClick={toggleTheme}
         >
-          <span className={`absolute top-1 left-1 h-4 w-4 rounded-full bg-white transition-transform duration-300 ${
-            isDark ? "translate-x-5" : "translate-x-0"
-          }`} />
+          <span
+            className={`absolute top-1 left-1 h-4 w-4 rounded-full bg-white transition-transform duration-300 ${
+              isDark ? "translate-x-5" : "translate-x-0"
+            }`}
+          />
         </button>
       </div>
     </header>

@@ -11,19 +11,15 @@ import CatalogoPage from "@/pages/Catalogo"
 import LoginPage from "@/pages/Login"
 
 // Páginas protegidas
+import PerfilPage from "@/pages/Perfil"
 import DashboardPage from "@/pages/Dashboard"
 import ProdutosPage from "@/pages/Produtos"
 import VendasPage from "@/pages/Vendas"
 import EstoquePage from "@/pages/Estoque"
 import PDVsPage from "@/pages/PDVs"
 
-// ==========================================================================
-// Configuração centralizada de rotas
-// ==========================================================================
 export const router = createBrowserRouter([
-  // -----------------------------------------------------------------------
-  // Rotas Públicas (sem autenticação)
-  // -----------------------------------------------------------------------
+  // Rotas públicas
   {
     element: <AuthLayout />,
     children: [
@@ -43,22 +39,22 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // -----------------------------------------------------------------------
-  // Rotas temporárias para desenvolvimento (remover depois)
-  // -----------------------------------------------------------------------
+  // ROTA TEMPORÁRIA DE DESENVOLVIMENTO FRONTEND
   {
     element: <MainLayout />,
     children: [
       {
-        path: "/dev",
+        path: "/",
         element: <DashboardPage />,
+      },
+      {
+        path: "/perfil",
+        element: <PerfilPage />,
       },
     ],
   },
 
-  // -----------------------------------------------------------------------
-  // Rotas Protegidas (requerem autenticação)
-  // -----------------------------------------------------------------------
+  // Rotas protegidas (requerem autenticação)
   {
     element: <ProtectedRoute />,
     children: [
@@ -72,6 +68,10 @@ export const router = createBrowserRouter([
           {
             path: "/dashboard",
             element: <DashboardPage />,
+          },
+          {
+            path: "/perfil",
+            element: <PerfilPage />,
           },
           {
             path: "/produtos",
