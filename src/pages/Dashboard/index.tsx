@@ -1,20 +1,11 @@
-import { Breadcrumb } from "@/components/ui/breadcrumb"
-
 export default function DashboardPage() {
-  ;<Breadcrumb
-    items={[
-      { label: "Tela Inicial", to: "/dashboard" },
-      { label: "Perfil de Usuário" },
-    ]}
-  />
-
   return (
     <div>
       <h1 className="text-h1 text-(--txt-primary)">Dashboard</h1>
+      
       <p className="mt-1 text-sm text-gray-600 sm:mt-2 dark:text-gray-400">
         Visão geral do sistema — produção, vendas e estoque.
       </p>
-
       {/* Placeholder — cards de métricas responsivos */}
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[

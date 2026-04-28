@@ -21,6 +21,10 @@
 
   --radius-sm: 8px;
   --radius-xs: 4px;
+
+  --shadow-sm: 0 2px 4px 0 rgb(26 26 26 / 0.08);
+  --shadow-md: 0 4px 12px 0 rgb(26 26 26 / 0.12);
+  --shadow-lg: 0 12px 24px 0 rgb(26 26 26 / 0.12);
 }
 
 :root {

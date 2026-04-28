@@ -31,6 +31,14 @@
   --radius-sm: 8px;
   --radius-xs: 4px;
   --radius-none: 0px;
+  --shadow-sm: 0 2px 4px 0 rgb(26 26 26 / 0.08);
+  --shadow-md: 0 4px 12px 0 rgb(26 26 26 / 0.12);
+  --shadow-lg: 0 12px 24px 0 rgb(26 26 26 / 0.12);
+  --width-sm: 384px;
+  --width-md: 448px;
+  --width-lg: 512px;
+  --width-xl: 576px;
+  --width-2xl: 672px;
 }
 
 @layer base {
