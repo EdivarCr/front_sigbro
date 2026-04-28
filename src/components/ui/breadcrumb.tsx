@@ -18,7 +18,7 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
           {item.to ? (
             <NavLink
               to={item.to}
-              className="text-table-header text-(--txt-secondary) transition-colors hover:text-(--txt-primary)"
+              className="text-table-header text-(--txt-secondary) transition-colors hover:text-(--txt-link)"
             >
               {item.label}
             </NavLink>
