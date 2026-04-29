@@ -18,6 +18,7 @@
 
   --border-thin: 1px;
   --border-bold: 2px;
+  --border-accent: 4px;
 
   --radius-sm: 8px;
   --radius-xs: 4px;
@@ -74,7 +75,7 @@
 
   --border-default: #ebebeb;
   --border-input: #f1f1f1;
-  --border-active: #a4133c;
+  --border-active: #f08787;
 
   --brand-primary-default: #f6f6f6;
   --brand-primary-hover: #f0f0f0;

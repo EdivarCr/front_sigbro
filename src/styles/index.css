@@ -39,6 +39,7 @@
   --width-lg: 512px;
   --width-xl: 576px;
   --width-2xl: 672px;
+  --border-accent: 4px;
 }
 
 @layer base {
