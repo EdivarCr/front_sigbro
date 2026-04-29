@@ -50,7 +50,7 @@ export function Sidebar() {
   if (!shouldCollapseSidebar) {
     if (!isOpen) return null
     return (
-      <aside className="flex w-64 shrink-0 flex-col bg-(--bg-sidebar) drop-shadow-sm">
+      <aside className="flex w-64 shrink-0 flex-col bg-(--bg-sidebar) shadow-sm">
         <SidebarContent />
       </aside>
     )

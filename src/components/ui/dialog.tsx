@@ -61,7 +61,7 @@ function DialogContent({
           "fixed top-1/2 left-1/2 z-50 grid w-full max-w-(--width-xl) -translate-x-1/2 -translate-y-1/2 gap-6",
           "rounded-sm bg-(--bg-surface) p-6",
           "shadow-lg",
-          "outline-none duration-100",
+          "duration-100 outline-none",
           "data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95",
           "data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
           className
@@ -78,7 +78,10 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn("flex flex-row items-center justify-between gap-1", className)}
+      className={cn(
+        "flex flex-row items-center justify-between gap-1",
+        className
+      )}
       {...props}
     />
   )

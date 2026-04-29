@@ -32,27 +32,22 @@ export function Modal({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {onClose && (
-            <Button variant="ghost" size="md" onClick={onClose} className="shrink-0 -mt-1 -mr-1 p-1 hover:bg-(--bg-sidebar)">
+            <Button
+              variant="ghost"
+              size="md"
+              onClick={onClose}
+              className="-mt-1 -mr-1 shrink-0 p-1 hover:bg-(--bg-sidebar)"
+            >
               <XIcon size={24} />
             </Button>
           )}
         </DialogHeader>
-        
-        {description && (
-          <DialogDescription>{description}</DialogDescription>
-        )}
 
-        {children && (
-          <div className="flex flex-col gap-4">
-            {children}
-          </div>
-        )}
+        {description && <DialogDescription>{description}</DialogDescription>}
 
-        {footer && (
-          <DialogFooter>
-            {footer}
-          </DialogFooter>
-        )}
+        {children && <div className="flex flex-col gap-4">{children}</div>}
+
+        {footer && <DialogFooter>{footer}</DialogFooter>}
       </DialogContent>
     </Dialog>
   )

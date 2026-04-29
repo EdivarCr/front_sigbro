@@ -58,7 +58,7 @@ function DropdownMenuItem({
         // Disabled
         "data-disabled:pointer-events-none data-disabled:opacity-50",
         // Ícones
-        "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:size-4",
+        "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
         className
       )}
       {...props}

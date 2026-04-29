@@ -26,7 +26,9 @@ export function Input({
       {label && (
         <label className="text-body-sm text-(--txt-secondary)">
           {label}
-          {required && <span className="text-brand text-body-sm ml-1">*</span>}
+          {required && (
+            <span className="text-body-sm ml-1 text-(--txt-link)">*</span>
+          )}
         </label>
       )}
 

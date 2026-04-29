@@ -26,7 +26,7 @@ export function InputPassword({
       {label && (
         <label className="text-body-sm text-body-sm text-(--txt-secondary)">
           {label}
-          {required && <span className="text-brand ml-1">*</span>}
+          {required && <span className="ml-1 text-(--txt-link)">*</span>}
         </label>
       )}
 
