@@ -1,3 +1,11 @@
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import {
+  loginSchema,
+  forgotSchema,
+  type LoginFormData,
+  type ForgotFormData,
+} from "@/schemas/auth.schema"
 import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { InputPassword } from "@/components/ui/input-password"
@@ -7,14 +15,28 @@ import logo from "@/assets/images/base-logo-v1.png"
 import { ArrowUDownLeftIcon } from "@phosphor-icons/react"
 import { Checkbox } from "@/components/ui/checkbox"
 
-type AuthView = "login" | "register" | "forgot" | "email-sent"
+type AuthView = "login" | "forgot" | "email-sent"
 
 export default function LoginPage() {
   const [view, setView] = useState<AuthView>("login")
-  const [loginEmailError, setLoginEmailError] = useState<string>("")
-  const [forgotEmailError, setForgotEmailError] = useState<string>("")
-  const isValidEmail = (email: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+
+  const loginForm = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    mode: "onBlur",
+  })
+
+  const forgotForm = useForm<ForgotFormData>({
+    resolver: zodResolver(forgotSchema),
+    mode: "onBlur",
+  })
+
+  const onLogin = (data: LoginFormData) => {
+    console.log("Login:", data) // TODO: integração com Supabase
+  }
+
+  const onForgot = (data: ForgotFormData) => {
+    console.log("Forgot:", data) // TODO: integração com Supabase
+    setView("email-sent")
   }
 
   return (
@@ -35,7 +57,10 @@ export default function LoginPage() {
       {/* Lado direito — 40% */}
       <div className="flex flex-1 flex-col items-center justify-center bg-(--bg-primary) px-12">
         {view === "login" && (
-          <div className="flex w-full flex-col gap-6">
+          <form
+            onSubmit={loginForm.handleSubmit(onLogin)}
+            className="flex w-full flex-col gap-6"
+          >
             <h1 className="text-h1 text-(--txt-primary)">
               Bem-vindo de volta!
             </h1>
@@ -45,21 +70,22 @@ export default function LoginPage() {
                 label="E-mail"
                 type="email"
                 placeholder="janedoe@email.com"
-                onBlur={(event) => {
-                  const email = event.target.value
-                  if (!isValidEmail(email)) {
-                    setLoginEmailError("E-mail inválido")
-                  } else {
-                    setLoginEmailError("")
-                  }
-                }}
-                error={loginEmailError}
+                error={loginForm.formState.errors.email?.message}
+                {...loginForm.register("email")}
               />
               <div className="flex flex-col gap-1">
-                <InputPassword label="Senha" placeholder="Sua senha" />
+                <InputPassword
+                  label="Senha"
+                  placeholder="Sua senha"
+                  error={loginForm.formState.errors.senha?.message}
+                  {...loginForm.register("senha")}
+                />
                 <button
                   type="button"
-                  onClick={() => setView("forgot")}
+                  onClick={() => {
+                    loginForm.reset()
+                    setView("forgot")
+                  }}
                   className="text-table-header cursor-pointer self-end text-(--txt-link) hover:underline"
                 >
                   Esqueceu a senha?
@@ -70,20 +96,30 @@ export default function LoginPage() {
               <Checkbox label="Lembrar de Mim" />
             </div>
 
-            <Button className="w-full" size="lg">
+            <Button
+              className="w-full"
+              size="lg"
+              disabled={!loginForm.formState.isValid}
+            >
               Entrar
             </Button>
-          </div>
+          </form>
         )}
 
         {view === "forgot" && (
-          <div className="flex w-full flex-col gap-8">
+          <form
+            onSubmit={forgotForm.handleSubmit(onForgot)}
+            className="flex w-full flex-col gap-8"
+          >
             <div className="flex flex-col gap-4">
               <Button
                 className="w-fit"
                 size="md"
                 variant="outlined"
-                onClick={() => setView("login")}
+                onClick={() => {
+                  forgotForm.reset()
+                  setView("login")
+                }}
               >
                 <ArrowUDownLeftIcon />
                 Voltar
@@ -102,15 +138,8 @@ export default function LoginPage() {
                 label="E-mail"
                 type="email"
                 placeholder="janedoe@email.com"
-                onBlur={(event) => {
-                  const email = event.target.value
-                  if (!isValidEmail(email)) {
-                    setForgotEmailError("E-mail inválido")
-                  } else {
-                    setForgotEmailError("")
-                  }
-                }}
-                error={forgotEmailError}
+                error={forgotForm.formState.errors.email?.message}
+                {...forgotForm.register("email")}
               />
             </div>
 
@@ -118,10 +147,11 @@ export default function LoginPage() {
               className="w-full"
               size="lg"
               onClick={() => setView("email-sent")}
+              disabled={!forgotForm.formState.isValid}
             >
               Enviar E-mail
             </Button>
-          </div>
+          </form>
         )}
 
         {view === "email-sent" && (
@@ -131,7 +161,10 @@ export default function LoginPage() {
                 className="w-fit"
                 size="md"
                 variant="outlined"
-                onClick={() => setView("login")}
+                onClick={() => {
+                  forgotForm.reset()
+                  setView("forgot")
+                }}
               >
                 <ArrowUDownLeftIcon />
                 Voltar
@@ -145,7 +178,10 @@ export default function LoginPage() {
             <Button
               className="w-full"
               size="lg"
-              onClick={() => setView("login")}
+              onClick={() => {
+                forgotForm.reset()
+                setView("login")
+              }}
             >
               Voltar para a Tela de Login
             </Button>

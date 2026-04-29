@@ -19,7 +19,7 @@ export function MainLayout() {
         <Sidebar />
         <div className="flex flex-1 flex-col overflow-hidden px-12 pb-4">
           <Header />
-          <main className="flex-1 overflow-y-auto py-6">
+          <main className="flex-1 overflow-y-auto">
             <Outlet />
           </main>
         </div>

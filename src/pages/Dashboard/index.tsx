@@ -1,8 +1,21 @@
+import { Table } from "@/components/ui/table"
+
 export default function DashboardPage() {
+  const usuarios = [
+    { id: 1, nome: "Jane Doe", email: "jane@email.com", status: "Ativo" },
+    { id: 2, nome: "Glauco", email: "glauco@email.com", status: "Ativo" },
+  ]
+
+  const colunas = [
+    { key: "nome", label: "Nome", sortable: true },
+    { key: "email", label: "E-mail", sortable: true },
+    { key: "status", label: "Status" },
+  ]
+
   return (
     <div>
       <h1 className="text-h1 text-(--txt-primary)">Dashboard</h1>
-      
+
       <p className="mt-1 text-sm text-gray-600 sm:mt-2 dark:text-gray-400">
         Visão geral do sistema — produção, vendas e estoque.
       </p>
@@ -28,6 +41,8 @@ export default function DashboardPage() {
             </p>
           </div>
         ))}
+
+        <Table columns={colunas} data={usuarios} pageSize={10} />
       </div>
     </div>
   )
