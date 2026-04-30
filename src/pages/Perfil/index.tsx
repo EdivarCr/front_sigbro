@@ -78,6 +78,7 @@ export default function PerfilPage() {
   const onRemover = (data: RemoverUsuarioFormData) => {
     console.log("Remover:", data)
     setRemoveModalOpen(false)
+    navigate("/login") // Rota TEMPORÁRIA de desenvolvimento
     removerForm.reset()
     toast({
       title: "Perfil removido!",
@@ -97,10 +98,10 @@ export default function PerfilPage() {
       <div className="flex flex-col gap-6 py-8">
         <h1 className="text-h1 text-(--txt-primary)">Perfil de Usuário</h1>
         <div className="flex flex-col items-center justify-center">
-          <div className="flex w-[80%] flex-col rounded-sm bg-(--bg-surface) p-6 shadow-md">
+          <div className="flex w-full flex-col rounded-sm bg-(--bg-surface) p-6 shadow-md md:w-[80%]">
             <div className="flex flex-col gap-4">
               <div className="flex flex-row gap-2">
-                <div className="flex flex-1 flex-col gap-1">
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <h2 className="text-h2 text-(--txt-primary)">Jane Doe</h2>
                   <h4 className="text-h4 text-(--txt-secondary)">
                     jane.doe@email.com
@@ -133,7 +134,7 @@ export default function PerfilPage() {
                 </DropdownMenu>
               </div>
 
-              <div className="flex flex-row gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <div className="flex flex-1 flex-col gap-1 rounded-sm bg-(--bg-primary) p-3">
                   <span className="text-table-header text-(--txt-secondary)">
                     Perfil de Acesso:
@@ -152,7 +153,7 @@ export default function PerfilPage() {
                 </div>
               </div>
 
-              <div className="flex flex-row gap-2 pt-3">
+              <div className="flex flex-col gap-2 pt-3 sm:flex-row">
                 <Button
                   variant="primary"
                   size="sm"
@@ -277,27 +278,24 @@ export default function PerfilPage() {
           error={editarForm.formState.errors.nome?.message}
           {...editarForm.register("nome")}
         />
-        <Input
-          label="E-mail"
-          type="email"
-          placeholder="janedoe@gmail.com"
+        <InputPassword
+          label="Senha atual"
+          placeholder="Sua senha atual"
           required
-          error={editarForm.formState.errors.email?.message}
-          {...editarForm.register("email")}
+          error={editarForm.formState.errors.senhaAtual?.message}
+          {...editarForm.register("senhaAtual")}
         />
         <InputPassword
-          label="Senha"
-          placeholder="Sua senha"
-          required
-          error={editarForm.formState.errors.senha?.message}
-          {...editarForm.register("senha")}
+          label="Nova senha"
+          placeholder="Nova senha (opcional)"
+          error={editarForm.formState.errors.novaSenha?.message}
+          {...editarForm.register("novaSenha")}
         />
         <InputPassword
-          label="Repetir Senha"
-          placeholder="Repetir Senha"
-          required
-          error={editarForm.formState.errors.confirmarSenha?.message}
-          {...editarForm.register("confirmarSenha")}
+          label="Repetir nova senha"
+          placeholder="Repetir nova senha"
+          error={editarForm.formState.errors.confirmarNovaSenha?.message}
+          {...editarForm.register("confirmarNovaSenha")}
         />
       </Modal>
 
