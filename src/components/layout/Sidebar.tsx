@@ -1,7 +1,7 @@
-import { NavLink, useLocation } from "react-router-dom"
+import { NavLink, useLocation, useNavigate } from "react-router-dom"
 import { useBreakpoint } from "@/hooks/useBreakpoint"
 import { useSidebar } from "@/context/SidebarContext"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useTheme } from "@/context/ThemeContext"
 import {
   UserIcon,
@@ -19,6 +19,8 @@ import {
 } from "@phosphor-icons/react"
 import logo from "@/assets/images/base-logo-v1.png"
 import logoDark from "@/assets/images/base-alt-logo-v1.png"
+import { Modal } from "../ui/modal"
+import { Button } from "../ui/button"
 
 const navItems = [
   { to: "/", label: "Tela Inicial", icon: ChartPieSliceIcon },
@@ -84,6 +86,9 @@ function SidebarContent({
   showClose?: boolean
 }) {
   const { isDark } = useTheme()
+
+  const navigate = useNavigate()
+  const [logOutModalOpen, setLogoutModalOpen] = useState(false)
 
   return (
     <div className="flex flex-1 flex-col gap-8 overflow-y-auto px-6 pt-6">
@@ -151,11 +156,43 @@ function SidebarContent({
 
       {/* Sair */}
       <div className="border-t border-(--border-default) py-4">
-        <button className="flex w-full cursor-pointer items-center gap-3 rounded-sm px-3 py-2 text-(--txt-secondary) transition-colors hover:bg-(--bg-sidebar-hover) hover:text-(--color-red)">
+        <button
+          className="flex w-full cursor-pointer items-center gap-3 rounded-sm px-3 py-2 text-(--txt-secondary) transition-colors hover:bg-(--bg-sidebar-hover) hover:text-(--color-red)"
+          onClick={() => setLogoutModalOpen(true)}
+        >
           <SignOutIcon size={24} />
           <span className="text-body-md">Sair</span>
         </button>
       </div>
+      <Modal
+        key={logOutModalOpen ? "logout-open" : "logout-closed"}
+        open={logOutModalOpen}
+        onClose={() => {
+          setLogoutModalOpen(false)
+        }}
+        title="Sair"
+        description="Tem certeza que deseja sair do sistema?"
+        footer={
+          <>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setLogoutModalOpen(false)
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={
+                () => navigate("/login") // ROTA TEMPORÁRIA
+              }
+            >
+              Sair
+            </Button>
+          </>
+        }
+      ></Modal>
     </div>
   )
 }
