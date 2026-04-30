@@ -38,7 +38,7 @@ export function InputPassword({
           autoComplete="current-password"
           className={cn(
             // Base
-            "text-body-md h-12 w-full rounded-sm border bg-(--bg-surface) px-2",
+            "h-12 w-full rounded-sm border bg-(--bg-surface) px-2 text-[14px]",
             "text-(--txt-primary) placeholder:text-(--txt-placeholder)",
             // Borda padrão
             "border-(--border-input)",
