@@ -1,5 +1,6 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom"
 import { useBreakpoint } from "@/hooks/useBreakpoint"
+import { useAuth } from "@/context/AuthContext"
 import { useSidebar } from "@/context/SidebarContext"
 import { useEffect, useState } from "react"
 import { useTheme } from "@/context/ThemeContext"
@@ -87,6 +88,7 @@ function SidebarContent({
 }) {
   const { isDark } = useTheme()
 
+  const { signOut } = useAuth()
   const navigate = useNavigate()
   const [logOutModalOpen, setLogoutModalOpen] = useState(false)
 
@@ -184,9 +186,10 @@ function SidebarContent({
             </Button>
             <Button
               variant="secondary"
-              onClick={
-                () => navigate("/login") // ROTA TEMPORÁRIA
-              }
+              onClick={async () => {
+                await signOut()
+                navigate("/login")
+              }}
             >
               Sair
             </Button>

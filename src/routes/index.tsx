@@ -40,60 +40,20 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // ROTA TEMPORÁRIA DE DESENVOLVIMENTO FRONTEND
-  {
-    element: <MainLayout />,
-    children: [
-      {
-        path: "/",
-        element: <DashboardPage />,
-      },
-      {
-        path: "/perfil",
-        element: <PerfilPage />,
-      },
-      {
-        path: "/usuarios",
-        element: <UsuariosPage />,
-      },
-    ],
-  },
-
-  // Rotas protegidas (requerem autenticação)
+  // Rotas protegidas
   {
     element: <ProtectedRoute />,
     children: [
       {
         element: <MainLayout />,
         children: [
-          {
-            path: "/",
-            element: <DashboardPage />,
-          },
-          {
-            path: "/dashboard",
-            element: <DashboardPage />,
-          },
-          {
-            path: "/perfil",
-            element: <PerfilPage />,
-          },
-          {
-            path: "/produtos",
-            element: <ProdutosPage />,
-          },
-          {
-            path: "/vendas",
-            element: <VendasPage />,
-          },
-          {
-            path: "/estoque",
-            element: <EstoquePage />,
-          },
-          {
-            path: "/pdvs",
-            element: <PDVsPage />,
-          },
+          { path: "/", element: <DashboardPage /> },
+          { path: "/perfil", element: <PerfilPage /> },
+          { path: "/usuarios", element: <UsuariosPage /> },
+          { path: "/produtos", element: <ProdutosPage /> },
+          { path: "/vendas", element: <VendasPage /> },
+          { path: "/estoque", element: <EstoquePage /> },
+          { path: "/pdvs", element: <PDVsPage /> },
         ],
       },
     ],

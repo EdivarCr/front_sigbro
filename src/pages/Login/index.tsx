@@ -1,3 +1,4 @@
+import { supabase } from "@/services"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
@@ -7,6 +8,7 @@ import {
   type ForgotFormData,
 } from "@/schemas/auth.schema"
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { Input } from "@/components/ui/input"
 import { InputPassword } from "@/components/ui/input-password"
 import { Button } from "@/components/ui/button"
@@ -17,7 +19,15 @@ import { Checkbox } from "@/components/ui/checkbox"
 
 type AuthView = "login" | "forgot" | "email-sent"
 
+{/* 
+  TODO: Integrar login com Google OAuth
+  - Backend: GET /auth/login → redireciona para Google → callback → JWT em cookie
+  - Aguardando merge da feature/login-email na develop do backend
+  - Referência: src/apisisbro/routers/auth_router.py
+*/}
+
 export default function LoginPage() {
+  const navigate = useNavigate()
   const [view, setView] = useState<AuthView>("login")
 
   const loginForm = useForm<LoginFormData>({
@@ -30,8 +40,20 @@ export default function LoginPage() {
     mode: "onBlur",
   })
 
-  const onLogin = (data: LoginFormData) => {
-    console.log("Login:", data) // TODO: integração com Supabase
+  const onLogin = async (data: LoginFormData) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email: data.email,
+      password: data.senha,
+    })
+
+    if (error) {
+      loginForm.setError("email", {
+        message: "E-mail ou senha inválidos",
+      })
+      return
+    }
+
+    navigate("/")
   }
 
   const onForgot = (data: ForgotFormData) => {

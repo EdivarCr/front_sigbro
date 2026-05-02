@@ -29,8 +29,15 @@ import {
   type EditarUsuarioFormData,
   type RemoverUsuarioFormData,
 } from "@/schemas/usuario.schema"
+import { useAuth } from "@/context/AuthContext"
 
 export default function PerfilPage() {
+  const { user } = useAuth()
+  const dataCriacao = user?.created_at
+    ? new Date(user.created_at).toLocaleDateString("pt-BR")
+    : "—"
+  const nome = user?.user_metadata?.nome ?? user?.email ?? "Usuário"
+
   const { toast } = useToast()
   const navigate = useNavigate()
 
@@ -102,9 +109,9 @@ export default function PerfilPage() {
             <div className="flex flex-col gap-4">
               <div className="flex flex-row gap-2">
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <h2 className="text-h2 text-(--txt-primary)">Jane Doe</h2>
+                  <h2 className="text-h2 text-(--txt-primary)">{nome}</h2>
                   <h4 className="text-h4 text-(--txt-secondary)">
-                    jane.doe@email.com
+                    {user?.email}
                   </h4>
                 </div>
 
@@ -140,7 +147,7 @@ export default function PerfilPage() {
                     Perfil de Acesso:
                   </span>
                   <span className="text-body-md text-(--txt-primary)">
-                    Administrador
+                    Administrador {/*TODO: Verficar questão do nível de acesso*/}
                   </span>
                 </div>
                 <div className="flex flex-1 flex-col gap-1 rounded-sm bg-(--bg-primary) p-3">
@@ -148,7 +155,7 @@ export default function PerfilPage() {
                     Data de Criação:
                   </span>
                   <span className="text-body-md text-(--txt-primary)">
-                    09/04/2026
+                    {dataCriacao}
                   </span>
                 </div>
               </div>
