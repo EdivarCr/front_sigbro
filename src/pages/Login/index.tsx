@@ -7,8 +7,9 @@ import {
   type LoginFormData,
   type ForgotFormData,
 } from "@/schemas/auth.schema"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import { Toast } from "@/components/ui/toast"
 import { Input } from "@/components/ui/input"
 import { InputPassword } from "@/components/ui/input-password"
 import { Button } from "@/components/ui/button"
@@ -16,6 +17,7 @@ import heroBanner from "@/assets/images/hero.jpg"
 import logo from "@/assets/images/base-logo-v1.png"
 import { ArrowUDownLeftIcon } from "@phosphor-icons/react"
 import { Checkbox } from "@/components/ui/checkbox"
+import { useToast } from "@/context/ToastContext"
 
 type AuthView = "login" | "forgot" | "email-sent"
 
@@ -27,6 +29,7 @@ type AuthView = "login" | "forgot" | "email-sent"
 */}
 
 export default function LoginPage() {
+  const { toast } = useToast()
   const navigate = useNavigate()
   const [view, setView] = useState<AuthView>("login")
 
@@ -113,18 +116,52 @@ export default function LoginPage() {
                   Esqueceu a senha?
                 </button>
               </div>
-
-              {/*Checkbox rememember-me*/}
-              <Checkbox label="Lembrar de Mim" />
             </div>
+            <div className="flex flex-col gap-2">
+              <Button
+                className="w-full"
+                size="lg"
+                disabled={!loginForm.formState.isValid}
+              >
+                Entrar
+              </Button>
 
-            <Button
-              className="w-full"
-              size="lg"
-              disabled={!loginForm.formState.isValid}
-            >
-              Entrar
-            </Button>
+              <div className="flex items-center gap-3">
+                <div className="h-[0.5px] flex-1 bg-(--border-default)" />
+                  <span className="text-body-sm text-(--txt-secondary)">ou</span>
+                <div className="h-[0.5px] flex-1 bg-(--border-default)" />
+              </div>
+
+              <Button
+                type="button"
+                variant="outlined"
+                size="lg"
+                className="w-full gap-2"
+                onClick={async () => {
+                  const { error } = await supabase.auth.signInWithOAuth({
+                    provider: "google",
+                    options: {
+                      redirectTo: "http://localhost:5173/"
+                    }
+                  })
+                  if (error) {
+                    toast({
+                      title: "Erro ao entrar com Google",
+                      description: error.message,
+                      variant: "danger",
+                    })
+                  }
+                }}
+              >
+                <img 
+                  src="https://www.google.com/favicon.ico" 
+                  alt="Google" 
+                  className="h-4 w-4" 
+                />
+                Entrar com Google
+              </Button>
+            </div>
+            
           </form>
         )}
 

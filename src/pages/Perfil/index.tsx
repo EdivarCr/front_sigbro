@@ -35,8 +35,11 @@ export default function PerfilPage() {
   const { user } = useAuth()
   const dataCriacao = user?.created_at
     ? new Date(user.created_at).toLocaleDateString("pt-BR")
-    : "—"
-  const nome = user?.user_metadata?.nome ?? user?.email ?? "Usuário"
+    : "-"
+  const nome = user?.user_metadata?.full_name
+    ?? user?.user_metadata?.name
+    ?? user?.email
+    ?? "-"
 
   const { toast } = useToast()
   const navigate = useNavigate()

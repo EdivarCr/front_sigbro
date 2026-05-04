@@ -8,9 +8,7 @@ import {
 import type { User, Session } from "@supabase/supabase-js"
 import { supabase } from "@/services/supabase/client"
 
-// ---------------------------------------------------------------------------
 // Tipos
-// ---------------------------------------------------------------------------
 interface AuthContextData {
   user: User | null
   session: Session | null
@@ -18,14 +16,10 @@ interface AuthContextData {
   signOut: () => Promise<void>
 }
 
-// ---------------------------------------------------------------------------
 // Contexto
-// ---------------------------------------------------------------------------
 const AuthContext = createContext<AuthContextData>({} as AuthContextData)
 
-// ---------------------------------------------------------------------------
 // Provider
-// ---------------------------------------------------------------------------
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
@@ -63,9 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 }
 
-// ---------------------------------------------------------------------------
 // Hook de conveniência
-// ---------------------------------------------------------------------------
 export function useAuth() {
   const context = useContext(AuthContext)
   if (!context) {
