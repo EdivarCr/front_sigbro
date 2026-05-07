@@ -20,6 +20,7 @@ export interface Column<T> {
 interface TableProps<T> {
   columns: Column<T>[]
   data: T[]
+  emptyValue?: string
   pageSize?: number
 }
 
@@ -29,6 +30,7 @@ type SortDirection = "asc" | "desc" | null
 export function Table<T extends { id?: string | number }>({
   columns,
   data,
+  emptyValue,
   pageSize = 10,
 }: TableProps<T>) {
   const [currentPage, setCurrentPage] = useState(1)
@@ -64,11 +66,11 @@ export function Table<T extends { id?: string | number }>({
   }
 
   return (
-    <div className="flex w-full flex-col">
-      <div className="overflow-x-auto">
+    <div className="flex h-full w-full flex-col overflow-hidden">
+      <div className="flex-1 overflow-auto">
         <table className="w-full border-collapse">
           <thead className="sticky top-0 z-10 bg-(--bg-sidebar)">
-            <tr>
+            <tr className="relative z-10">
               {columns.map((col, index) => (
                 <th
                   key={String(col.key)}
@@ -76,7 +78,7 @@ export function Table<T extends { id?: string | number }>({
                     col.sortable ? () => handleSort(String(col.key)) : undefined
                   }
                   className={cn(
-                    "h-10 border-b border-(--txt-secondary) px-4 py-2 text-left",
+                    "sticky top-0 z-10 h-10 border-b border-(--txt-secondary) px-4 py-2 text-left",
                     "font-sans text-xs font-bold text-(--txt-secondary)",
                     index === 0 && "rounded-tl-sm",
                     index === columns.length - 1 && "rounded-tr-sm",
@@ -135,9 +137,13 @@ export function Table<T extends { id?: string | number }>({
                         col.className
                       )}
                     >
-                      {col.render
-                        ? col.render(row)
-                        : String(row[col.key as keyof T] ?? "")}
+                      {(row[col.key as keyof T] ?? "") !== "" || col.key === "acoes" ? (
+                        col.render ? col.render(row) : String(row[col.key as keyof T] ?? "")
+                      ) : (
+                        <span className="text-(--txt-secondary) opacity-50 italic font-normal">
+                          {emptyValue || "—"}
+                        </span>
+                      )}
                     </td>
                   ))}
                 </tr>
