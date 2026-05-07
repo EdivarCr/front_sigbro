@@ -24,7 +24,7 @@ function SelectTrigger({
     <SelectPrimitive.Trigger
       className={cn(
         // Base
-        "group flex w-full items-center justify-between gap-2 rounded-sm border px-3 py-2",
+        "group flex w-full h-12 items-center justify-between gap-2 rounded-sm border px-3 py-2",
         "font-sans text-sm text-(--txt-primary)",
         // Borda
         "border-(--border-input)",

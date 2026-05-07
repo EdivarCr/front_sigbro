@@ -20,9 +20,9 @@ export function Textarea({
     <div className="flex flex-col gap-1">
       {/* Label — só aparece se for passado */}
       {label && (
-        <label className="text-sm font-medium text-(--txt-primary)">
+        <label className="text-body-sm text-(--txt-secondary)">
           {label}
-          {required && <span className="ml-1 text-(--color-brand)">*</span>}
+          {required && <span className="ml-1 text-brand">*</span>}
         </label>
       )}
 
