@@ -14,180 +14,55 @@ import {
   TrashIcon,
   XIcon,
 } from "@phosphor-icons/react"
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
+import { listarProdutos, type ProdutoListItem } from "@/services/api/produtos.service"
 import { useToast } from "@/context/ToastContext"
 import { useNavigate } from "react-router-dom"
-
-const produtos = [
-  {
-    id: 1,
-    nome: "Molho Pimenta da Casa",
-    tipo: "molho",
-    preco_varejo: 18.90,
-    preco_atacado: 1,
-    nivel_picancia: 4,
-    tem_carolina_reaper: false,
-    estoque_minimo: 10,
-    validade_meses: 12,
-    unidades_por_caixa: 12,
-    peso_gramas: 150.00,
-    ativo: true,
-  },
-  {
-    id: 2,
-    nome: "Molho Carolina Reaper Extremo",
-    tipo: "molho",
-    preco_varejo: 34.90,
-    preco_atacado: 21.99,
-    nivel_picancia: 10,
-    tem_carolina_reaper: true,
-    estoque_minimo: 10,
-    validade_meses: 18,
-    unidades_por_caixa: 6,
-    peso_gramas: 100.00,
-    ativo: true,
-  },
-  {
-    id: 3,
-    nome: "Geleia de Pimenta com Abacaxi",
-    tipo: "geleia",
-    preco_varejo: 22.90,
-    preco_atacado: 14.43,
-    nivel_picancia: 3,
-    tem_carolina_reaper: false,
-    estoque_minimo: 10,
-    validade_meses: 6,
-    unidades_por_caixa: 12,
-    peso_gramas: 200.00,
-    ativo: true,
-  },
-  {
-    id: 4,
-    nome: "Geleia de Pimenta com Manga",
-    tipo: "geleia",
-    preco_varejo: 22.90,
-    preco_atacado: 14.43,
-    nivel_picancia: 2,
-    tem_carolina_reaper: false,
-    estoque_minimo: 10,
-    validade_meses: 6,
-    unidades_por_caixa: 12,
-    peso_gramas: 200.00,
-    ativo: true,
-  },
-  {
-    id: 5,
-    nome: "Conserva de Pimenta Biquinho",
-    tipo: "conserva",
-    preco_varejo: 19.90,
-    preco_atacado: 12.54,
-    nivel_picancia: 1,
-    tem_carolina_reaper: false,
-    estoque_minimo: 10,
-    validade_meses: 24,
-    unidades_por_caixa: 12,
-    peso_gramas: 250.00,
-    ativo: true,
-  },
-  {
-    id: 6,
-    nome: "Molho Habanero Defumado",
-    tipo: "molho",
-    preco_varejo: 28.90,
-    preco_atacado: 18.21,
-    nivel_picancia: 7,
-    tem_carolina_reaper: false,
-    estoque_minimo: 10,
-    validade_meses: 18,
-    unidades_por_caixa: 6,
-    peso_gramas: 150.00,
-    ativo: true,
-  },
-  {
-    id: 7,
-    nome: "Geleia de Pimenta com Morango",
-    tipo: "geleia",
-    preco_varejo: 24.90,
-    preco_atacado: 15.69,
-    nivel_picancia: 2,
-    tem_carolina_reaper: false,
-    estoque_minimo: 10,
-    validade_meses: 6,
-    unidades_por_caixa: 12,
-    peso_gramas: 200.00,
-    ativo: false,
-  },
-  {
-    id: 8,
-    nome: "Conserva de Jalapeño",
-    tipo: "conserva",
-    preco_varejo: 21.90,
-    preco_atacado: 13.80,
-    nivel_picancia: 5,
-    tem_carolina_reaper: false,
-    estoque_minimo: 10,
-    validade_meses: 24,
-    unidades_por_caixa: 12,
-    peso_gramas: 250.00,
-    ativo: true,
-  },
-  {
-    id: 9,
-    nome: "Molho Carolina Reaper com Mel",
-    tipo: "molho",
-    preco_varejo: 38.90,
-    preco_atacado: 24.51,
-    nivel_picancia: 9,
-    tem_carolina_reaper: true,
-    estoque_minimo: 10,
-    validade_meses: 18,
-    unidades_por_caixa: 6,
-    peso_gramas: 100.00,
-    ativo: true,
-  },
-  {
-    id: 10,
-    nome: "Conserva de Pimenta Dedo de Moça",
-    tipo: "conserva",
-    preco_varejo: 17.90,
-    preco_atacado: 11.28,
-    nivel_picancia: 4,
-    tem_carolina_reaper: false,
-    estoque_minimo: 10,
-    validade_meses: 24,
-    unidades_por_caixa: 12,
-    peso_gramas: 250.00,
-    ativo: false,
-  },
-  {
-    id: 11,
-    nome: "Molho Pimenta Verde com Limão",
-    tipo: "molho",
-    preco_varejo: 19.90,
-    preco_atacado: 12.54,
-    nivel_picancia: 3,
-    tem_carolina_reaper: false,
-    estoque_minimo: 10,
-    validade_meses: 12,
-    unidades_por_caixa: 12,
-    peso_gramas: 150.00,
-    ativo: true,
-  },
-]
 
 export default function ProdutosPage() {
   const { toast } = useToast()
   const navigate = useNavigate()
+  
   const [search, setSearch] = useState("")
+  const [produtos, setProdutos] = useState<ProdutoListItem[]>([])
+  const [loading, setLoading] = useState(true)
 
   const [filterModalOpen, setFilterModalOpen] = useState(false)
-
   const [statusFiltro, setStatusFiltro] = useState<string>("")
   const [statusTemp, setStatusTemp] = useState<string>("")
-
   const [tipoFiltro, setTipoFiltro] = useState<string>("")
   const [tipoTemp, setTipoTemp] = useState<string>("")
-  
+
+  const fetchProdutos = useCallback(async () => {
+    setLoading(true)
+    try {
+      const data = await listarProdutos({
+        nome: search.trim().length >= 3 ? search : undefined,
+        tipo: tipoFiltro || undefined,
+        ativo: statusFiltro !== "" ? statusFiltro === "true" : undefined,
+      })
+      setProdutos(data.products)
+    } catch {
+      toast({
+        title: "Erro ao carregar produtos",
+        description: "Não foi possível buscar os produtos. Tente novamente.",
+        variant: "danger",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }, [search, tipoFiltro, statusFiltro, toast])
+
+  useEffect(() => {
+    const handler = setTimeout(() => fetchProdutos(), 500) // Só vusca se o usuário parar de digitar por 500ms
+    return () => clearTimeout(handler)
+  }, [fetchProdutos])
+
+  const [removeModalOpen, setRemoveModalOpen] = useState(false)
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(null)
+  // const removerForm aqui, se necessário !
+  // const onRemover aqui, se necessário
+
   const statusLabels: Record<string, string> = {
     "true": "Ativo",
     "false": "Inativo"
@@ -198,23 +73,6 @@ export default function ProdutosPage() {
     "geleia": "Geleia",
     "conserva": "Conserva"
   };
-
-  const filteredProdutos = produtos.filter((p) => {
-    const matchSearch = p.nome.toLowerCase().includes(search.toLowerCase())
-    const matchStatus = statusFiltro === "" || 
-      (statusFiltro === "true" ? p.ativo : !p.ativo)
-    const matchTipo = tipoFiltro === "" || p.tipo === tipoFiltro
-    return matchSearch && matchStatus && matchTipo
-  })
-
-  const [removeModalOpen, setRemoveModalOpen] = useState(false)
-
-  // const removerForm aqui, se necessário !
-  // const onRemover aqui, se necessário
-
-  /*const [selectedProduct, setSelectedProduct] = useState<(typeof produtos)[0] | null>(
-    null
-  )*/
 
   return (
     <div className="flex h-full flex-col min-h-0">
@@ -297,148 +155,153 @@ export default function ProdutosPage() {
               )}
             </div>
           )}
-          
-
-          <div className="flex-1 h-full min-h-0">
-            {/* Visível apenas no Desktop */}
-            <div className="hidden md:flex h-full flex-col flex-1 min-h-0">
-              <Table
-                columns={[
-                  { key: "nome", label: "Nome", sortable: true },
-                  { key: "tipo", label: "Tipo", sortable: true },
-                  {
-                    key: "preco_varejo",
-                    label: "Preço Varejo",
-                    sortable: true,
-                    render: (row) => `R$ ${Number(row.preco_varejo).toFixed(2).replace(".", ",")}`,
-                  },
-                  {
-                    key: "preco_atacado",
-                    label: "Preço Atacado",
-                    sortable: true,
-                    render: (row) => `R$ ${Number(row.preco_atacado).toFixed(2).replace(".", ",")}`,
-                  },
-                  {
-                    key: "nivel_picancia",
-                    label: "Picância",
-                    sortable: true,
-                    render: (row) => `${row.nivel_picancia}/10`,
-                  },
-                  {
-                    key: "tem_carolina_reaper",
-                    label: "Carolina Reaper",
-                    render: (row) => row.tem_carolina_reaper ? "Sim" : "Não",
-                  },
-                  {
-                    key: "peso_gramas",
-                    label: "Peso (g)",
-                    sortable: true,
-                    render: (row) => `${row.peso_gramas}g`,
-                  },
-                  {
-                    key: "estoque_minimo",
-                    label: "Est. Mínimo",
-                    sortable: true,
-                  },
-                  {
-                    key: "validade_meses",
-                    label: "Validade (meses)",
-                    sortable: true,
-                  },
-                  {
-                    key: "unidades_por_caixa",
-                    label: "Un./Caixa",
-                    sortable: true,
-                  },
-                  {
-                    key: "ativo",
-                    label: "Status",
-                    render: (row) => (
-                      <span className={`text-label w-fit px-2 py-0.5 rounded-full ${
-                        row.ativo
-                          ? "bg-(--color-green) text-(--txt-on-brand)"
-                          : "bg-(--bg-sidebar) text-(--txt-secondary)"
-                      }`}>
-                        {row.ativo ? "Ativo" : "Inativo"}
-                      </span>
-                    ),
-                  },
-                  {
-                    key: "acoes",
-                    label: "Ações",
-                    className: "w-32",
-                    render: (row) => (
-                      <div className="-ml-2 flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => navigate(`/produtos/${row.id}`)}
-                        >
-                          <EyeIcon size={16} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => navigate(`/produtos/editar/${row.id}`)}
-                        >
-                          <PencilSimpleIcon size={16} />
-                        </Button>
-                        {row.ativo && (
+              
+          {loading ? (
+            <div className="flex h-40 items-center justify-center">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+            </div>
+          ) : (
+            <div className="flex-1 h-full min-h-0">
+              {/* Visível apenas no Desktop */}
+              <div className="hidden md:flex h-full flex-col flex-1 min-h-0">
+                <Table
+                  columns={[
+                    { key: "nome", label: "Nome", sortable: true },
+                    { key: "tipo", label: "Tipo", sortable: true },
+                    {
+                      key: "preco_varejo",
+                      label: "Preço Varejo",
+                      sortable: true,
+                      render: (row) => `R$ ${Number(row.preco_varejo).toFixed(2).replace(".", ",")}`,
+                    },
+                    {
+                      key: "preco_atacado",
+                      label: "Preço Atacado",
+                      sortable: true,
+                      render: (row) => `R$ ${Number(row.preco_atacado).toFixed(2).replace(".", ",")}`,
+                    },
+                    {
+                      key: "nivel_picancia",
+                      label: "Picância",
+                      sortable: true,
+                      render: (row) => `${row.nivel_picancia}/10`,
+                    },
+                    {
+                      key: "tem_carolina_reaper",
+                      label: "Carolina Reaper",
+                      render: (row) => row.tem_carolina_reaper ? "Sim" : "Não",
+                    },
+                    {
+                      key: "peso_gramas",
+                      label: "Peso (g)",
+                      sortable: true,
+                      render: (row) => `${row.peso_gramas}g`,
+                    },
+                    {
+                      key: "estoque_minimo",
+                      label: "Est. Mínimo",
+                      sortable: true,
+                    },
+                    {
+                      key: "validade_meses",
+                      label: "Validade (meses)",
+                      sortable: true,
+                    },
+                    {
+                      key: "unidades_por_caixa",
+                      label: "Un./Caixa",
+                      sortable: true,
+                    },
+                    {
+                      key: "ativo",
+                      label: "Status",
+                      render: (row) => (
+                        <span className={`text-label w-fit px-2 py-0.5 rounded-full ${
+                          row.ativo
+                            ? "bg-(--color-green) text-(--txt-on-brand)"
+                            : "bg-(--bg-sidebar) text-(--txt-secondary)"
+                        }`}>
+                          {row.ativo ? "Ativo" : "Inativo"}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: "acoes",
+                      label: "Ações",
+                      className: "w-32",
+                      render: (row) => (
+                        <div className="-ml-2 flex gap-1">
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="hover:text-(--color-red)"
-                            onClick={() => setRemoveModalOpen(true)}
+                            onClick={() => navigate(`/produtos/${row.id}`)}
                           >
-                            <TrashIcon size={16} />
+                            <EyeIcon size={16} />
                           </Button>
-                        )}
-                      </div>
-                    ),
-                  },
-                ]}
-                data={filteredProdutos}
-                pageSize={10}
-                emptyValue="N/A"
-              />
-            </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => navigate(`/produtos/editar/${row.id}`)}
+                          >
+                            <PencilSimpleIcon size={16} />
+                          </Button>
+                          {row.ativo && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="hover:text-(--color-red)"
+                              onClick={() => setRemoveModalOpen(true)}
+                            >
+                              <TrashIcon size={16} />
+                            </Button>
+                          )}
+                        </div>
+                      ),
+                    },
+                  ]}
+                  data={produtos}
+                  pageSize={10}
+                  emptyValue="N/A"
+                />
+              </div>
 
-            {/* Visível apenas no Mobile */}
-            <div className="flex md:hidden h-full flex-col min-h-0 overflow-y-auto">
-              <MobileTable 
-                columns={[
-                  { key: "nome", label: "Produto" },
-                  { key: "tipo", label: "Categoria" },
-                  { 
-                    key: "preco_varejo", 
-                    label: "Preço", 
-                    render: (row) => `R$ ${row.preco_varejo.toFixed(2)}` 
-                  },
-                ]}
-                renderRightActions={(produto) => (
-                  <>
-                    <Button variant="primary" size="sm" onClick={() => navigate(`/produtos/editar/${produto.id}`)}>
-                      <PencilSimpleIcon size={16} />
+              {/* Visível apenas no Mobile */}
+              <div className="flex md:hidden h-full flex-col min-h-0 overflow-y-auto">
+                <MobileTable 
+                  columns={[
+                    { key: "nome", label: "Produto" },
+                    { key: "tipo", label: "Categoria" },
+                    { 
+                      key: "preco_varejo", 
+                      label: "Preço", 
+                      render: (row) => `R$ ${Number(row.preco_varejo).toFixed(2).replace(".", ",")}` 
+                    },
+                  ]}
+                  renderRightActions={(produto) => (
+                    <>
+                      <Button variant="primary" size="sm" onClick={() => navigate(`/produtos/editar/${produto.id}`)}>
+                        <PencilSimpleIcon size={16} />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="text-(--txt-secondary) hover:text-(--color-red) hover:bg-(--bg-sidebar)" onClick={() => setRemoveModalOpen(true)}>
+                        <TrashIcon size={16} />
+                      </Button>
+                    </>
+                  )}
+                  renderBottomAction={(produto) => (
+                    <Button 
+                      variant="primary" 
+                      className="w-full gap-2 border-none"
+                      onClick={() => navigate(`/produtos/${produto.id}`)}
+                    >
+                      Ver Detalhes
                     </Button>
-                    <Button variant="ghost" size="sm" className="text-(--txt-secondary) hover:text-(--color-red) hover:bg-(--bg-sidebar)" onClick={() => setRemoveModalOpen(true)}>
-                      <TrashIcon size={16} />
-                    </Button>
-                  </>
-                )}
-                renderBottomAction={(produto) => (
-                  <Button 
-                    variant="primary" 
-                    className="w-full gap-2 border-none"
-                    onClick={() => navigate(`/produtos/${produto.id}`)}
-                  >
-                    Ver Detalhes
-                  </Button>
-                )}
-                data={filteredProdutos}
-                emptyValue="N/A"
-              />
+                  )}
+                  data={produtos}
+                  emptyValue="N/A"
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
       

@@ -1,8 +1,9 @@
 import { Breadcrumb } from "@/components/ui/breadcrumb"
 import { cn } from "@/lib/utils"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { useToast } from "@/context/ToastContext"
+import { buscarProduto, type ProdutoListItem } from "@/services/api/produtos.service"
 import { 
   PepperIcon, 
   ScalesIcon, 
@@ -19,33 +20,51 @@ export default function VisualizarProdutoPage(){
   const { toast } = useToast()
   const navigate = useNavigate()
 
-  // Virá da API após integração
-  const produtoMock = [
-    { 
-      id: 1,
-      nome: "Molho Pimenta da Casa",
-      tipo: "molho",
-      descricao: "Um molho extremamente picante feito com as melhores pimentas da região de Quixadá. Ingredientes: Pimenta, Vinagre, Sal e Especiarias.",
-      status: true,
-      data_criacao: "2024-05-20T14:30:00Z",
-      preco_varejo: 25.90,
-      preco_atacado: 18.50,
-      nivel_picancia: 10,
-      peso_gramas: 200,
-      alergenicos: "Não contém glúten",
-      tem_carolina_reaper: true,
-      estoque_minimo: 20,
-      validade_meses: 12,
-      unidades_por_caixa: 12,
-      image: "https://static.wikia.nocookie.net/plantsvszombies/images/8/8b/Jalapeno1.png/revision/latest/thumbnail/width/360/height/360?cb=20090521220347",
-      extras: ["https://static.wikia.nocookie.net/plantsvszombies/images/f/f7/Pickled_PepperSE.png/revision/latest/thumbnail/width/360/height/360?cb=20250220101243", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7TXNSVrT47DoG5FbZ5wfF7X_2WlOlGKSJqORovyGhEZYD6W2uOvupCRGQBQ2ZPLNPERTZgrX21Trgm_itlQ&s&ec=121643154"],
-    },
-  ]
-  const produto = produtoMock.find((p) => p.id === Number(id))
+  const [produto, setProduto] = useState<ProdutoListItem | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [activeImage, setActiveImage] = useState<string | undefined>(undefined)
 
-  const [activeImage, setActiveImage] = useState(produto?.image)
+  const urlBase = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/produtos/`;
+  const activeImageUrl = produto?.imagem_path ? `${urlBase}${produto.imagem_path}` : "https://placehold.co/400x400?text=Sem+Imagem";
+  const allImages: string[] = [activeImageUrl];
+  
+  useEffect(() => {
+    async function loadProduto() {
+      if (!id) return
+      try {
+        setLoading(true)
+        const data = await buscarProduto(Number(id))
+        
+        if (!data) throw new Error("Produto não encontrado")
+        
+        setProduto(data)
+        
+        // Lógica da Imagem: Se imagem_path existir, monta a URL do Supabase
+        const urlBase = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/produtos/`
+        const mainImg = data.imagem_path ? `${urlBase}${data.imagem_path}` : "https://placehold.co/400x400?text=Sem+Imagem"
+        setActiveImage(mainImg)
 
-  const allImages = [produto?.image, ...(produto?.extras ?? [])]
+      } catch (error) {
+        toast({
+          title: "Erro ao carregar produto",
+          description: "Não foi possível encontrar este produto.",
+          variant: "danger",
+        })
+        navigate("/produtos")
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadProduto()
+  }, [id, navigate, toast])
+
+  if (loading) {
+    return (
+      <div className="flex h-100 items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+      </div>
+    )
+  }
 
   if (!produto) {
     return (
@@ -69,9 +88,6 @@ export default function VisualizarProdutoPage(){
       />
       <div className="flex w-full justify-center pt-6">
         <div className="flex flex-col w-full max-w-271 gap-6">
-          {/* Status visual rápido conforme a US1.1.1 */}
-          {/* TODO: Falta o atributo status na tabela de produtos */}
-          
           {/* 1. HEADER E MÍDIA */}
           <section className="flex flex-col md:flex-row items-start gap-8 bg-(--bg-surface) p-6 rounded-sm border border-(--bg-sidebar) shadow-sm">          
             <div className="flex flex-col w-fit shrink-0 mx-auto md:mx-0 gap-4">
@@ -106,11 +122,11 @@ export default function VisualizarProdutoPage(){
                   </span>
                   <span className={cn(
                     "text-[10px] uppercase font-bold px-2 py-1 rounded-sm",
-                    produto.status 
+                    produto.ativo
                       ? "bg-green-500/10 text-green-600" 
                       : "bg-gray-500/10 text-gray-400"
                   )}>
-                    {produto.status ? "Ativo" : "Inativo"}
+                    {produto.ativo ? "Ativo" : "Inativo"}
                   </span>
                   {produto.tem_carolina_reaper && (
                     <span className="bg-red-500/10 text-red-600 text-[10px] uppercase font-bold px-2 py-1 rounded-sm flex items-center gap-1">
@@ -139,7 +155,7 @@ export default function VisualizarProdutoPage(){
                 <div className="flex items-center gap-1 text-sm text-(--txt-secondary) opacity-70">
                   <span>Cadastrado em:</span>
                   <span className="font-medium">
-                    {new Date(produto.data_criacao).toLocaleDateString('pt-BR')}
+                    {new Date(produto.criado_em).toLocaleDateString('pt-BR')}
                   </span>
                 </div>
                 <p className="text-body text-(--txt-secondary) mt-4 italic">
@@ -149,7 +165,7 @@ export default function VisualizarProdutoPage(){
               </div>
 
               <div className="bg-(--bg-primary) p-4 rounded-sm border-l-4 border-(--txt-link) mt-6">
-                <h4 className="text-label font-bold uppercase text-(--txt-secondary) mb-2">Ingredientes e Alergênicos</h4>
+                <h4 className="text-label font-bold uppercase text-(--txt-secondary) mb-2">Alergênicos</h4>
                 <p className="text-body-sm text-(--txt-primary)">{produto.alergenicos || "Nenhum alergênico declarado."}</p>
               </div>
             </div>
@@ -166,11 +182,11 @@ export default function VisualizarProdutoPage(){
               <div className="flex flex-col gap-3">
                 <div className="flex justify-between">
                   <span className="text-label text-(--txt-secondary)">Varejo:</span>
-                  <span className="font-bold text-(--txt-primary)">R$ {produto.preco_varejo.toFixed(2)}</span>
+                  <span className="font-bold text-(--txt-primary)">R$ {Number(produto.preco_varejo).toFixed(2).replace(".",",")}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-label text-(--txt-secondary)">Atacado:</span>
-                  <span className="font-bold text-(--txt-primary)">R$ {produto.preco_atacado.toFixed(2)}</span>
+                  <span className="font-bold text-(--txt-primary)">R$ {Number(produto.preco_atacado).toFixed(2).replace(".",",")}</span>
                 </div>
               </div>
             </div>
