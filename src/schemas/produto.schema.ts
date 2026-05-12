@@ -18,11 +18,12 @@ export const produtoSchema = z.object({
     .optional(),
   alergenicos: z.string()
     .max(255, "Máximo de 255 caracteres")
-    .optional(),
+    .optional()
+    .or(z.literal("")),
   tem_carolina_reaper: z.boolean().default(false),
   estoque_minimo: z.coerce.number()
     .int()
-    .min(0, "O estoque não pode ser negativo")
+    .min(10, "O estoque mínimo deve ser de pelo menos 10 unidades")
     .optional(),
   validade_meses: z.coerce.number()
     .int()
@@ -33,7 +34,7 @@ export const produtoSchema = z.object({
     .min(1, "Mínimo 1 unidade"),
   peso_gramas: z.coerce.number()
     .gt(0, "Volume inválido: deve ser maior que zero"),
-  image: z.string().nullable().optional(),
+  image: z.any().optional(),
   ativo: z.boolean().default(true)
 })
 

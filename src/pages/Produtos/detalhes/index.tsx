@@ -3,9 +3,8 @@ import { cn } from "@/lib/utils"
 import { useState, useEffect } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { useToast } from "@/context/ToastContext"
-import { buscarProduto, type ProdutoListItem } from "@/services/api/produtos.service"
+import { buscarProduto, editarProduto, type ProdutoListItem } from "@/services/api/produtos.service"
 import { 
-  PepperIcon, 
   ScalesIcon, 
   CurrencyDollarIcon, 
   PackageIcon, 
@@ -14,6 +13,7 @@ import {
   PencilSimpleIcon,
 } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
+import { Modal } from "@/components/ui/modal"
 
 export default function VisualizarProdutoPage(){
   const { id } = useParams()
@@ -27,7 +27,38 @@ export default function VisualizarProdutoPage(){
   const urlBase = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/produtos/`;
   const activeImageUrl = produto?.imagem_path ? `${urlBase}${produto.imagem_path}` : "https://placehold.co/400x400?text=Sem+Imagem";
   const allImages: string[] = [activeImageUrl];
+
+  const [removeModalOpen, setRemoveModalOpen] = useState(false)
+  const [idParaRemover, setIdParaRemover] = useState<number | null>(null)
+  const [isRemoving, setIsRemoving] = useState(false)
   
+  const onRemover = async () => {
+    if (!idParaRemover) return
+
+    setIsRemoving(true)
+    try {
+      await editarProduto(idParaRemover, { ativo: false })
+
+      toast({
+        title: "Produto removido",
+        description: "O status do produto foi alterado para inativo.",
+        variant: "success",
+      })
+
+      setProduto(prev => prev ? { ...prev, ativo: false } : null);
+      setRemoveModalOpen(false)
+    } catch (error) {
+      toast({
+        title: "Erro ao remover",
+        description: "Ocorreu um erro ao tentar inativar o produto.",
+        variant: "danger",
+      })
+    } finally {
+      setIsRemoving(false)
+      setIdParaRemover(null)
+    }
+  }
+
   useEffect(() => {
     async function loadProduto() {
       if (!id) return
@@ -137,7 +168,7 @@ export default function VisualizarProdutoPage(){
                     <Button
                       variant="primary"
                       size="sm"
-                      //onClick={() => navigate(`/produtos/editar/${row.id}`)}
+                      onClick={() => navigate(`/produtos/editar/${produto.id}`)}
                     >
                       <PencilSimpleIcon size={16} />
                     </Button> 
@@ -145,7 +176,10 @@ export default function VisualizarProdutoPage(){
                       variant="ghost"
                       size="sm"
                       className="hover:text-(--color-red)"
-                      //onClick={() => setRemoveModalOpen(true)}
+                      onClick={() => {
+                        setIdParaRemover(produto.id)
+                        setRemoveModalOpen(true)
+                      }}
                     >
                       <TrashIcon size={16} />
                     </Button>
@@ -202,13 +236,9 @@ export default function VisualizarProdutoPage(){
                   <span className="text-label text-(--txt-secondary)">Peso Líquido:</span>
                   <span className="font-bold text-(--txt-primary)">{produto.peso_gramas}g</span>
                 </div>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between">
                   <span className="text-label text-(--txt-secondary)">Picância:</span>
-                  <div className="flex gap-0.5 text-(--txt-link)">
-                    {[...Array(5)].map((_, i) => (
-                      <PepperIcon key={i} weight={i < (produto.nivel_picancia / 2) ? "fill" : "regular"} />
-                    ))}
-                  </div>
+                  <span className="font-bold text-(--txt-primary)">{produto.nivel_picancia} / 10</span>
                 </div>
               </div>
             </div>
@@ -237,6 +267,41 @@ export default function VisualizarProdutoPage(){
           </div>
         </div>
       </div>
+
+      {/* Modal de Remoção */}
+      <Modal
+        key={removeModalOpen ? "remove-open" : "remove-closed"}
+        open={removeModalOpen}
+        onClose={() => {
+          setRemoveModalOpen(false)
+        }}
+        title="Remover Produto"
+        description="Tem certeza que deseja excluir esse produto? Esta ação não poderá ser desfeita."
+        footer={
+          <>
+            <Button
+              variant="outlined"
+              disabled={isRemoving}
+              onClick={() => {
+                setIdParaRemover(produto.id)
+                setRemoveModalOpen(false)
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                onRemover()
+              }}
+            >
+              Remover Produto
+            </Button>
+          </>
+        }
+      >
+      </Modal>
+
     </div>
   )
 }

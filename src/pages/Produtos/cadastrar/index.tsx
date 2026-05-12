@@ -5,21 +5,64 @@ import {
   type ProdutoFormData,
 } from "@/schemas/produto.schema"
 import { ProductForm } from "@/components/forms/ProductForm"
+import { type ProdutoListItem } from "@/services/api/produtos.service"
+import { cadastrarProduto } from "@/services/api/produtos.service"
 
 export default function CadastrarProdutoPage(){
   const { toast } = useToast()
   const navigate = useNavigate()
 
-  const handleCadastro = (data: ProdutoFormData) => {
-    console.log("Enviando dados para a API/Supabase:", data) // TODO: Integração
+  const handleCadastro = async (data: ProdutoFormData) => {
+    try {
+      console.log("Enviando dados para a API/Supabase:", data)
+      const imageFile = (data as any).image || null 
     
-    toast({
-      title: "Produto cadastrado!",
-      description: `${data.nome} foi adicionado ao catálogo com sucesso.`,
-      variant: "success",
-    })
+      const response = await cadastrarProduto(data, imageFile)
 
-    navigate("/produtos")
+      const mockResponse: ProdutoListItem = {
+        id: Math.floor(Math.random() * 1000), // Gera um ID aleatório para o teste
+        nome: data.nome,
+        descricao: data.descricao,
+        tipo: data.tipo as "molho" | "geleia" | "conserva",
+        
+        preco_varejo: Number(data.preco_varejo),
+        preco_atacado: Number(data.preco_atacado),
+        peso_gramas: data.peso_gramas ? String(data.peso_gramas) : "0.00",
+        
+        nivel_picancia: data.nivel_picancia || 0,
+        alergenicos: data.alergenicos || "",
+        tem_carolina_reaper: data.tem_carolina_reaper || false,
+        
+        // Campos que o banco gera automaticamente
+        imagem_path: null,
+        imagem_bucket: null,
+        ativo: true,
+        criado_em: new Date().toISOString(),
+        atualizado_em: new Date().toISOString(),
+        
+        // Campos de estoque e validade
+        estoque_minimo: data.estoque_minimo || 10,
+        validade_meses: data.validade_meses || 0,
+        unidades_por_caixa: data.unidades_por_caixa || 1,
+      };
+
+      console.log("JSON de resposta do servidor:", response)
+      toast({
+        title: "Produto cadastrado!",
+        description: `${data.nome} foi adicionado ao catálogo com sucesso.`,
+        variant: "success",
+      })
+
+      navigate("/produtos")
+    } catch (error: any) {
+      console.error("Erro na resposta:", error.response?.data || error.messages)
+
+      toast({
+      title: "Erro ao cadastrar",
+        description: error.response?.data?.detail || "Erro na conexão com a API.",
+        variant: "danger",
+      })
+    }
   }
 
   return(
