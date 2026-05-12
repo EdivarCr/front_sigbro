@@ -15,7 +15,7 @@ import {
   XIcon,
 } from "@phosphor-icons/react"
 import { useState, useEffect, useCallback } from "react"
-import { listarProdutos, type ProdutoListItem } from "@/services/api/produtos.service"
+import { listarProdutos, editarProduto, type ProdutoListItem } from "@/services/api/produtos.service"
 import { useToast } from "@/context/ToastContext"
 import { useNavigate } from "react-router-dom"
 
@@ -41,7 +41,9 @@ export default function ProdutosPage() {
         tipo: tipoFiltro || undefined,
         ativo: statusFiltro !== "" ? statusFiltro === "true" : undefined,
       })
-      setProdutos(data.products)
+      const ordenados = [...data.products].sort((a, b) => a.id - b.id)
+
+      setProdutos(ordenados)
     } catch {
       toast({
         title: "Erro ao carregar produtos",
@@ -59,9 +61,35 @@ export default function ProdutosPage() {
   }, [fetchProdutos])
 
   const [removeModalOpen, setRemoveModalOpen] = useState(false)
-  const [selectedProductId, setSelectedProductId] = useState<number | null>(null)
-  // const removerForm aqui, se necessário !
-  // const onRemover aqui, se necessário
+  const [idParaRemover, setIdParaRemover] = useState<number | null>(null)
+  const [isRemoving, setIsRemoving] = useState(false)
+  
+  const onRemover = async () => {
+    if (!idParaRemover) return
+
+    setIsRemoving(true)
+    try {
+      await editarProduto(idParaRemover, { ativo: false })
+
+      toast({
+        title: "Produto removido",
+        description: "O status do produto foi alterado para inativo.",
+        variant: "success",
+      })
+
+      setRemoveModalOpen(false)
+      fetchProdutos()
+    } catch (error) {
+      toast({
+        title: "Erro ao remover",
+        description: "Ocorreu um erro ao tentar inativar o produto.",
+        variant: "danger",
+      })
+    } finally {
+      setIsRemoving(false)
+      setIdParaRemover(null)
+    }
+  }
 
   const statusLabels: Record<string, string> = {
     "true": "Ativo",
@@ -250,7 +278,10 @@ export default function ProdutosPage() {
                               variant="ghost"
                               size="sm"
                               className="hover:text-(--color-red)"
-                              onClick={() => setRemoveModalOpen(true)}
+                              onClick={() => {
+                                setIdParaRemover(row.id)
+                                setRemoveModalOpen(true)
+                              }}
                             >
                               <TrashIcon size={16} />
                             </Button>
@@ -282,7 +313,10 @@ export default function ProdutosPage() {
                       <Button variant="primary" size="sm" onClick={() => navigate(`/produtos/editar/${produto.id}`)}>
                         <PencilSimpleIcon size={16} />
                       </Button>
-                      <Button variant="ghost" size="sm" className="text-(--txt-secondary) hover:text-(--color-red) hover:bg-(--bg-sidebar)" onClick={() => setRemoveModalOpen(true)}>
+                      <Button variant="ghost" size="sm" className="text-(--txt-secondary) hover:text-(--color-red) hover:bg-(--bg-sidebar)" onClick={() => {
+                        setIdParaRemover(produto.id)
+                        setRemoveModalOpen(true)
+                      }}>
                         <TrashIcon size={16} />
                       </Button>
                     </>
@@ -375,17 +409,18 @@ export default function ProdutosPage() {
           <>
             <Button
               variant="outlined"
+              disabled={isRemoving}
               onClick={() => {
                 setRemoveModalOpen(false)
-                //removerForm.reset()
               }}
             >
               Cancelar
             </Button>
             <Button
               variant="secondary"
-              //disabled={!removerForm.formState.isValid}
-              //onClick={removerForm.handleSubmit(onRemover)}
+              onClick={() => {
+                onRemover()
+              }}
             >
               Remover Produto
             </Button>
