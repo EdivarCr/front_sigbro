@@ -233,15 +233,19 @@ export function ProductForm({ onSubmit, defaultValues, mode}: ProductFormProps) 
       </div>
       
 
-      {/* Alerta de Picância Extrema */}
+      {/* Alerta de Picância */}
       <div className="rounded-sm bg-(--bg-primary) p-4 border-l-4 border-brand">
-        <Checkbox 
-          label="Este produto contém Carolina Reaper?" 
-          {...register("tem_carolina_reaper")} 
+        <Controller
+          name="tem_carolina_reaper"
+          control={control}
+          render={({ field }) => (
+            <Checkbox 
+              label="Este produto contém Carolina Reaper?" 
+              checked={field.value}
+              onChange={field.onChange}
+            />
+          )}
         />
-        {/*<p className="text-[10px] text-(--txt-secondary) mt-2 uppercase tracking-wider">
-          Atenção: Marcadores visuais de perigo serão aplicados ao catálogo.
-        </p>*/}
       </div>
 
       {/* Botões de Ação */}
