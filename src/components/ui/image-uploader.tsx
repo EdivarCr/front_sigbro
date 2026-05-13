@@ -1,4 +1,4 @@
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { PlusIcon, XIcon, UploadSimpleIcon, InfoIcon } from "@phosphor-icons/react"
 
@@ -9,6 +9,8 @@ interface ImageUploaderProps {
 }
 
 export function ImageUploader({ value, onChange, className }: ImageUploaderProps) {
+  const SHOW_EXTRAS = false;
+
   const mainInputRef = useRef<HTMLInputElement>(null)
   const [mainPreview, setMainPreview] = useState<string | null>(value ?? null)
 
@@ -18,6 +20,12 @@ export function ImageUploader({ value, onChange, className }: ImageUploaderProps
   const handleMainSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+    
+    // Limpa a URL anterior se ela for um Blob temporário
+    if (mainPreview?.startsWith("blob:")) {
+      URL.revokeObjectURL(mainPreview);
+    }
+
     const localUrl = URL.createObjectURL(file)
     setMainPreview(localUrl)
     onChange?.(file)
@@ -50,6 +58,14 @@ export function ImageUploader({ value, onChange, className }: ImageUploaderProps
       extraInputRefs.current[index]!.value = ""
     }
   }
+
+  useEffect(() => {
+    if (typeof value === "string") {
+      setMainPreview(value);
+    } else if (!value) {
+      setMainPreview(null);
+    }
+  }, [value]);
 
   return (
     <div className={cn("flex flex-col md:flex-row gap-4 rounded-sm bg-(--bg-surface) items-center md:items-start", className)}>
@@ -114,56 +130,57 @@ export function ImageUploader({ value, onChange, className }: ImageUploaderProps
         </div>
       </div>
 
-      {/* Outras fotos — opcional */}
-      <div className="flex flex-col gap-3 items-center w-full md:w-auto">
-        <span className="text-table-header text-(--txt-link)">
-          Outras fotos
-        </span>
-        <div className="flex flex-row md:flex-col gap-2 flex-wrap">
-          {extraPreviews.map((preview, index) => (
-            <div key={index} className="relative w-fit">
-              <input
-                ref={(el) => { extraInputRefs.current[index] = el }}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => handleExtraSelect(index, e)}
-              />
+      {/* Outras fotos — opcional, ocultas via flag*/}
+      {SHOW_EXTRAS && (
+        <div className="flex flex-col gap-3 items-center w-full md:w-auto">
+          <span className="text-table-header text-(--txt-link)">
+            Outras fotos
+          </span>
+          <div className="flex flex-row md:flex-col gap-2 flex-wrap">
+            {extraPreviews.map((preview, index) => (
+              <div key={index} className="relative w-fit">
+                <input
+                  ref={(el) => { extraInputRefs.current[index] = el }}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => handleExtraSelect(index, e)}
+                />
 
-              <div
-                className={cn(
-                  "flex size-12 md:size-15 items-center justify-center rounded-sm",
-                  preview
-                    ? "border-2 border-solid border-(--border-input)"
-                    : "border-2 border-dashed border-(--border-input) cursor-pointer hover:border-(--border-active) hover:bg-(--bg-sidebar)"
-                )}
-                onClick={() => !preview && extraInputRefs.current[index]?.click()}
-              >
-                {preview ? (
-                  <img
-                    src={preview}
-                    alt={`Foto extra ${index + 1}`}
-                    className="h-full w-full rounded-sm object-cover"
-                  />
-                ) : (
-                  <UploadSimpleIcon size={16} className="text-(--txt-secondary)" />
+                <div
+                  className={cn(
+                    "flex size-12 md:size-15 items-center justify-center rounded-sm",
+                    preview
+                      ? "border-2 border-solid border-(--border-input)"
+                      : "border-2 border-dashed border-(--border-input) cursor-pointer hover:border-(--border-active) hover:bg-(--bg-sidebar)"
+                  )}
+                  onClick={() => !preview && extraInputRefs.current[index]?.click()}
+                >
+                  {preview ? (
+                    <img
+                      src={preview}
+                      alt={`Foto extra ${index + 1}`}
+                      className="h-full w-full rounded-sm object-cover"
+                    />
+                  ) : (
+                    <UploadSimpleIcon size={16} className="text-(--txt-secondary)" />
+                  )}
+                </div>
+
+                {preview && (
+                  <button
+                    type="button"
+                    onClick={() => handleExtraRemove(index)}
+                    className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-(--bg-surface) shadow-sm text-(--txt-secondary) hover:text-(--color-red) cursor-pointer"
+                  >
+                    <XIcon size={12} weight="bold"/>
+                  </button>
                 )}
               </div>
-
-              {preview && (
-                <button
-                  type="button"
-                  onClick={() => handleExtraRemove(index)}
-                  className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-(--bg-surface) shadow-sm text-(--txt-secondary) hover:text-(--color-red) cursor-pointer"
-                >
-                  <XIcon size={12} weight="bold"/>
-                </button>
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
-
+      )}
     </div>
   )
 }

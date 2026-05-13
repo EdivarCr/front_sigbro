@@ -111,13 +111,19 @@ export async function editarProduto(
   const formData = new FormData()
 
   Object.entries(data).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
+    if (key !== "image" && value !== undefined && value !== null) {
       formData.append(key, String(value))
     }
   })
+  
+  if (imageFile instanceof File) {
+    formData.append("image", imageFile) // Upload de arquivo novo
+  } else if (imageFile === null) {
+    formData.append("remove_image", "true") // Comando para remover imagem atual
+    console.log("Sinal de remoção enviado.")
+  }
 
-  if (imageFile) formData.append("image", imageFile)
-
+  console.log("Imagem sendo enviada:", formData.get("image"));
   const response = await apiClient.patch(`/produtos/${id}`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
   })

@@ -15,6 +15,14 @@ export default function EditarProdutoPage(){
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  const BUCKET = "SigBro_imgs/"
+  const urlBase = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/`;
+  const valoresIniciais = {
+    ...produto,
+    image: produto?.imagem_path ? `${urlBase}${BUCKET}${produto.imagem_path}` : null,
+    alergenicos: produto?.alergenicos ?? "",
+  } as ProdutoFormData;
+  
   const { toast } = useToast()
   const navigate = useNavigate()
   
@@ -48,7 +56,14 @@ export default function EditarProdutoPage(){
   const handleEdit = async (data: ProdutoFormData) => {
     setIsSubmitting(true)
     try {
-      await editarProduto(Number(id), data)
+      console.log("Valor da imagem no submit:", data.image);
+
+      const imageToProcess = data.image === null 
+        ? null 
+        : (data.image instanceof File 
+            ? data.image 
+            : undefined);
+      await editarProduto(Number(id), data, imageToProcess)
 
       toast({
         title: "Produto editado!",
@@ -83,7 +98,7 @@ export default function EditarProdutoPage(){
           <div className="flex flex-col w-full rounded-sm bg-(--bg-surface) p-6 shadow-md border border-(--bg-sidebar)">
             <ProductForm 
               onSubmit={handleEdit}
-              defaultValues={produto as ProdutoFormData}
+              defaultValues={valoresIniciais}
               mode="edit"
             />
           </div>

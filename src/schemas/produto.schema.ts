@@ -34,7 +34,7 @@ export const produtoSchema = z.object({
     .min(1, "Mínimo 1 unidade"),
   peso_gramas: z.coerce.number()
     .gt(0, "Volume inválido: deve ser maior que zero"),
-  image: z.any().optional(),
+  image: z.any().nullable().optional(),
   ativo: z.boolean().default(true)
 })
 

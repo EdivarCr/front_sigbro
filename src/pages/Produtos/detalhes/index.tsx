@@ -24,9 +24,12 @@ export default function VisualizarProdutoPage(){
   const [loading, setLoading] = useState(true)
   const [activeImage, setActiveImage] = useState<string | undefined>(undefined)
 
-  const urlBase = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/produtos/`;
-  const activeImageUrl = produto?.imagem_path ? `${urlBase}${produto.imagem_path}` : "https://placehold.co/400x400?text=Sem+Imagem";
-  const allImages: string[] = [activeImageUrl];
+  const BUCKET = "SigBro_imgs/"
+  const urlBase = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/`
+  const activeImageUrl = produto?.imagem_path 
+    ? `${urlBase}${BUCKET}${produto.imagem_path}`
+    : "https://placehold.co/400x400?text=Sem+Imagem";
+  const allImages: string[] = [activeImageUrl]
 
   const [removeModalOpen, setRemoveModalOpen] = useState(false)
   const [idParaRemover, setIdParaRemover] = useState<number | null>(null)
@@ -71,8 +74,11 @@ export default function VisualizarProdutoPage(){
         setProduto(data)
         
         // Lógica da Imagem: Se imagem_path existir, monta a URL do Supabase
-        const urlBase = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/produtos/`
-        const mainImg = data.imagem_path ? `${urlBase}${data.imagem_path}` : "https://placehold.co/400x400?text=Sem+Imagem"
+        const BUCKET = "SigBro_imgs/"
+        const urlBase = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/`
+        const mainImg = data.imagem_path 
+          ? `${urlBase}${BUCKET}${data.imagem_path}`
+          : "https://placehold.co/400x400?text=Sem+Imagem"
         setActiveImage(mainImg)
 
       } catch (error) {
