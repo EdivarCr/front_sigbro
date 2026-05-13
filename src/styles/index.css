@@ -51,6 +51,7 @@
   }
   html {
     @apply font-sans;
+    overflow: hidden;
   }
   h1,
   h2,

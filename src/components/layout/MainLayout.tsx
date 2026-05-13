@@ -15,9 +15,9 @@ import { useTheme } from "@/context/ThemeContext"
 export function MainLayout() {
   return (
     <SidebarProvider>
-      <div className="flex h-screen bg-(--bg-primary)">
+      <div className="flex h-dvh bg-(--bg-primary)">
         <Sidebar />
-        <div className="flex flex-1 flex-col overflow-hidden px-12 pb-4">
+        <div className="flex flex-1 flex-col overflow-hidden px-6 md:px-12 pb-4">
           <Header />
           <main className="flex-1 overflow-y-auto">
             <Outlet />

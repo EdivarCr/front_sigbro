@@ -40,7 +40,7 @@ export function SelectField({
   return (
     <div className="flex flex-col gap-1">
       {label && (
-        <label className="text-body-sm text-(--txt-primary)">
+        <label className="text-body-sm text-(--txt-secondary)">
           {label}
           {required && <span className="text-brand ml-1">*</span>}
         </label>

@@ -14,7 +14,12 @@ import LoginPage from "@/pages/Login"
 import PerfilPage from "@/pages/Perfil"
 import UsuariosPage from "@/pages/Usuarios"
 import DashboardPage from "@/pages/Dashboard"
+
 import ProdutosPage from "@/pages/Produtos"
+import CadastrarProdutoPage from "@/pages/Produtos/cadastrar"
+import EditarProdutoPage from "@/pages/Produtos/editar"
+import VisualizarProdutoPage from "@/pages/Produtos/detalhes"
+
 import VendasPage from "@/pages/Vendas"
 import EstoquePage from "@/pages/Estoque"
 import PDVsPage from "@/pages/PDVs"
@@ -47,7 +52,17 @@ export const router = createBrowserRouter([
           { path: "/", element: <DashboardPage /> },
           { path: "/perfil", element: <PerfilPage /> },
           { path: "/usuarios", element: <UsuariosPage /> },
-          { path: "/produtos", element: <ProdutosPage /> },
+
+          {
+            path: "/produtos",
+            children: [
+              { index: true, element: <ProdutosPage /> },
+              { path: "cadastrar", element: <CadastrarProdutoPage /> },
+              { path: ":id", element: <VisualizarProdutoPage /> },
+              { path: "editar/:id", element: <EditarProdutoPage /> },
+            ],
+          },
+
           { path: "/vendas", element: <VendasPage /> },
           { path: "/estoque", element: <EstoquePage /> },
           { path: "/pdvs", element: <PDVsPage /> },
