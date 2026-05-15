@@ -137,13 +137,18 @@ export function Table<T extends { id?: string | number }>({
                         col.className
                       )}
                     >
-                      {(row[col.key as keyof T] ?? "") !== "" || col.key === "acoes" ? (
-                        col.render ? col.render(row) : String(row[col.key as keyof T] ?? "")
-                      ) : (
-                        <span className="text-(--txt-secondary) opacity-50 italic font-normal">
-                          {emptyValue || "—"}
-                        </span>
-                      )}
+                      <div className={cn(
+                        "block truncate",
+                        col.key === 'nome' && "max-w-36 lg:max-w-42" 
+                      )}>
+                        {(row[col.key as keyof T] ?? "") !== "" || col.key === "acoes" ? (
+                          col.render ? col.render(row) : String(row[col.key as keyof T] ?? "")
+                        ) : (
+                          <span className="text-(--txt-secondary) opacity-50 italic font-normal">
+                            {emptyValue || "—"}
+                          </span>
+                        )}
+                      </div>
                     </td>
                   ))}
                 </tr>
