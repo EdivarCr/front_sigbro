@@ -12,7 +12,6 @@ import LoginPage from "@/pages/Login"
 
 // Páginas protegidas
 import PerfilPage from "@/pages/Perfil"
-import UsuariosPage from "@/pages/Usuarios"
 import DashboardPage from "@/pages/Dashboard"
 
 import ProdutosPage from "@/pages/Produtos"
@@ -51,8 +50,6 @@ export const router = createBrowserRouter([
         children: [
           { path: "/", element: <DashboardPage /> },
           { path: "/perfil", element: <PerfilPage /> },
-          { path: "/usuarios", element: <UsuariosPage /> },
-
           {
             path: "/produtos",
             children: [
