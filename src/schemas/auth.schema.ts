@@ -1,11 +1,19 @@
 import { z } from "zod"
 
+const letraRegex = /[a-zA-Z]/
+const numeroRegex = /\d/
+
 export const loginSchema = z.object({
   email: z
     .string()
     .min(1, "E-mail obrigatório")
     .check(z.email("Formato de e-mail inválido")),
-  senha: z.string().min(1, "Senha obrigatória").min(8, "Mínimo 8 caracteres"),
+  senha: z
+    .string()
+    .min(1, "Senha obrigatória")
+    .min(8, "Mínimo 8 caracteres")
+    .regex(letraRegex, "A senha deve conter pelo menos uma letra")
+    .regex(numeroRegex, "A senha deve conter pelo menos um número"),
 })
 
 export type LoginFormData = z.infer<typeof loginSchema>
@@ -24,8 +32,12 @@ export const resetPasswordSchema = z.object({
   refresh_token: z.string(),
   new_password: z
     .string()
-    .min(8, "A nova senha deve ter no mínimo 8 caracteres"),
-  confirm_password: z.string() 
+    .min(8, "A nova senha deve ter no mínimo 8 caracteres")
+    .regex(letraRegex, "A senha deve conter pelo menos uma letra")
+    .regex(numeroRegex, "A senha deve conter pelo menos um número"),
+  confirm_password: z
+    .string()
+    .min(1, "Confirmação obrigatória")
 }).refine((data) => data.new_password === data.confirm_password, {
   message: "As senhas não coincidem",
   path: ["confirm_password"], // O erro aparecerá no campo de confirmação

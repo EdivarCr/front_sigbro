@@ -7,30 +7,22 @@ import {
   type LoginFormData,
   type ForgotFormData,
 } from "@/schemas/auth.schema"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Toast } from "@/components/ui/toast"
 import { Input } from "@/components/ui/input"
 import { InputPassword } from "@/components/ui/input-password"
 import { Button } from "@/components/ui/button"
 import heroBanner from "@/assets/images/hero.jpg"
 import logo from "@/assets/images/base-logo-v1.png"
 import { ArrowUDownLeftIcon } from "@phosphor-icons/react"
-import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/context/ToastContext"
+import { solicitarRecuperacaoSenha } from "@/services/api/auth.service"
 
 type AuthView = "login" | "forgot" | "email-sent"
 
-{/* 
-  TODO: Integrar login com Google OAuth
-  - Backend: GET /auth/login → redireciona para Google → callback → JWT em cookie
-  - Aguardando merge da feature/login-email na develop do backend
-  - Referência: src/apisisbro/routers/auth_router.py
-*/}
-
 export default function LoginPage() {
-  const { toast } = useToast()
   const navigate = useNavigate()
+  const { toast } = useToast()
   const [view, setView] = useState<AuthView>("login")
 
   const loginForm = useForm<LoginFormData>({
@@ -59,9 +51,21 @@ export default function LoginPage() {
     navigate("/")
   }
 
-  const onForgot = (data: ForgotFormData) => {
-    console.log("Forgot:", data) // TODO: integração com Supabase
-    setView("email-sent")
+  const onForgot = async (data: ForgotFormData) => {
+    console.log("onForgot disparado! Dados recebidos do formulário:", data)
+    try {
+      await solicitarRecuperacaoSenha(data)
+      console.log("API respondeu com sucesso!")
+      setTimeout(() => {
+        setView("email-sent")
+      }, 0)
+    } catch (error: any) {
+      toast({
+        title: "Erro ao enviar e-mail",
+        description: error.response?.data?.detail || "Não foi possível processar sua solicitação. O usuário existe?",
+        variant: "danger",
+      })
+    }
   }
 
   return (
@@ -126,7 +130,7 @@ export default function LoginPage() {
                 Entrar
               </Button>
 
-              <div className="flex items-center gap-3">
+              {/*<div className="flex items-center gap-3">
                 <div className="h-[0.5px] flex-1 bg-(--border-default)" />
                   <span className="text-body-sm text-(--txt-secondary)">ou</span>
                 <div className="h-[0.5px] flex-1 bg-(--border-default)" />
@@ -159,7 +163,7 @@ export default function LoginPage() {
                   className="h-4 w-4" 
                 />
                 Entrar com Google
-              </Button>
+              </Button>*/}
             </div>
             
           </form>
@@ -205,10 +209,10 @@ export default function LoginPage() {
             <Button
               className="w-full"
               size="lg"
-              onClick={() => setView("email-sent")}
-              disabled={!forgotForm.formState.isValid}
+              onClick={() => console.log("Botão de enviar clicado!")}
+              disabled={!forgotForm.formState.isValid || forgotForm.formState.isSubmitting}
             >
-              Enviar E-mail
+              {forgotForm.formState.isSubmitting ? "Enviando..." : "Enviar E-mail"}
             </Button>
           </form>
         )}
@@ -217,6 +221,7 @@ export default function LoginPage() {
           <div className="flex w-full flex-col gap-8">
             <div className="flex flex-col gap-4">
               <Button
+                type="submit"
                 className="w-fit"
                 size="md"
                 variant="outlined"
@@ -231,9 +236,8 @@ export default function LoginPage() {
               <h1 className="text-h1 text-(--txt-primary)">E-mail enviado</h1>
             </div>
             <p className="text-body-md text-(--txt-secondary)">
-              E-mail de recuperação enviado para janedoe@email.com.
-            </p>{" "}
-            {/*TODO: Mudar para variável posteriormente*/}
+              E-mail de recuperação enviado para <span className="font-bold">{forgotForm.getValues("email")}</span>
+            </p>
             <Button
               className="w-full"
               size="lg"

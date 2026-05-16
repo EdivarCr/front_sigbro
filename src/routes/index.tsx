@@ -12,6 +12,7 @@ import LoginPage from "@/pages/Login"
 
 // Páginas protegidas
 import PerfilPage from "@/pages/Perfil"
+import ResetPasswordPage from "@/pages/ResetPassword"
 import DashboardPage from "@/pages/Dashboard"
 
 import ProdutosPage from "@/pages/Produtos"
@@ -29,6 +30,7 @@ export const router = createBrowserRouter([
     element: <AuthLayout />,
     children: [
       { path: "/login", element: <LoginPage /> },
+      { path: "/reset-password", element: <ResetPasswordPage /> },
     ],
   },
   {

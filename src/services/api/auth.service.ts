@@ -8,7 +8,7 @@ import {
 export async function solicitarRecuperacaoSenha(data: ForgotFormData) {
   const response = await apiClient.post('/auth/forgot-password', {
     email: data.email,
-    redirect_url: "http://localhost:3000/reset-password"
+    redirect_url: "http://localhost:5173/reset-password"
   });
   return response.data;
 }
