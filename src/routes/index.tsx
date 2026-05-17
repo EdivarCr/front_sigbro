@@ -20,9 +20,11 @@ import CadastrarProdutoPage from "@/pages/Produtos/cadastrar"
 import EditarProdutoPage from "@/pages/Produtos/editar"
 import VisualizarProdutoPage from "@/pages/Produtos/detalhes"
 
-import VendasPage from "@/pages/Vendas"
+import InsumosPage from "@/pages/Insumos"
 import EstoquePage from "@/pages/Estoque"
+import VendasPage from "@/pages/Vendas"
 import PDVsPage from "@/pages/PDVs"
+
 
 export const router = createBrowserRouter([
   // Rotas públicas
@@ -61,7 +63,7 @@ export const router = createBrowserRouter([
               { path: "editar/:id", element: <EditarProdutoPage /> },
             ],
           },
-
+          { path: "/insumos", element: <InsumosPage/>},
           { path: "/vendas", element: <VendasPage /> },
           { path: "/estoque", element: <EstoquePage /> },
           { path: "/pdvs", element: <PDVsPage /> },
