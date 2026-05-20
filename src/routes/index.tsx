@@ -21,6 +21,8 @@ import EditarProdutoPage from "@/pages/Produtos/editar"
 import VisualizarProdutoPage from "@/pages/Produtos/detalhes"
 
 import InsumosPage from "@/pages/Insumos"
+import InsumoDetalhesPage from "@/pages/Insumos/detalhes" // Importe a nova página
+
 import EstoquePage from "@/pages/Estoque"
 import VendasPage from "@/pages/Vendas"
 import PDVsPage from "@/pages/PDVs"
@@ -63,7 +65,11 @@ export const router = createBrowserRouter([
               { path: "editar/:id", element: <EditarProdutoPage /> },
             ],
           },
-          { path: "/insumos", element: <InsumosPage/>},
+          { path: "/insumos", 
+            children: [
+              { index: true, element: <InsumosPage/> },
+              { path: ":id", element: <InsumoDetalhesPage/> }, 
+            ]},
           { path: "/vendas", element: <VendasPage /> },
           { path: "/estoque", element: <EstoquePage /> },
           { path: "/pdvs", element: <PDVsPage /> },

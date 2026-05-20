@@ -1,11 +1,15 @@
 import { useState, useEffect, useCallback } from "react"
+import { useNavigate } from "react-router-dom"
 import { useToast } from "@/context/ToastContext"
 import { InsumoForm } from "@/components/forms/InsumoForm"
 import { type InsumoFormData } from "@/schemas/insumos.schema"
+import { EntradaInsumoForm } from "@/components/forms/EntradaInsumoForm"
+import { type EntradaInsumoFormData } from "@/schemas/entradaInsumo.schema"
 
 import { Breadcrumb } from "@/components/ui/breadcrumb"
 import { Table } from "@/components/ui/table"
 import { MobileTable } from "@/components/ui/mobile-table"
+import { SelectField } from "@/components/ui/select-field"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Modal } from "@/components/ui/modal"
@@ -13,76 +17,35 @@ import {
   FadersIcon,
   MagnifyingGlassIcon,
   PlusIcon,
+  EyeIcon,
   PencilSimpleIcon,
   TrashIcon,
+  XIcon,
+  PlusCircleIcon
 } from "@phosphor-icons/react"
-// Imports de insumos.service aqui
 
-// Interface espelhando o backend para digitação dos dados locais
-interface InsumoItem {
-  id: number
-  nome: string
-  tipo: "MP" | "EMBALAGEM" | "OUTRO"
-  unidade_de_medida: "KG" | "G" | "L" | "ML" | "UN"
-  quantidade_estoque: number
-  estoque_minimo: number
-  custo_unitario: number
-  ativo: boolean
-}
-
-// Dados mockados realistas para a produção da Dr. Broa
-const MOCK_INSUMOS: InsumoItem[] = [
-  {
-    id: 1,
-    nome: "Pimenta Malagueta",
-    tipo: "MP",
-    unidade_de_medida: "KG",
-    quantidade_estoque: 45.5,
-    estoque_minimo: 10.0,
-    custo_unitario: 15.5,
-    ativo: true,
-  },
-  {
-    id: 2,
-    nome: "Garrafa de Vidro 500ml",
-    tipo: "EMBALAGEM",
-    unidade_de_medida: "UN",
-    quantidade_estoque: 120,
-    estoque_minimo: 200,
-    custo_unitario: 2.1,
-    ativo: true,
-  },
-  {
-    id: 3,
-    nome: "Vinagre de Álcool",
-    tipo: "MP",
-    unidade_de_medida: "L",
-    quantidade_estoque: 8.0,
-    estoque_minimo: 15.0,
-    custo_unitario: 4.8,
-    ativo: true,
-  },
-  {
-    id: 4,
-    nome: "Extrato de Tomate",
-    tipo: "MP",
-    unidade_de_medida: "KG",
-    quantidade_estoque: 0.5,
-    estoque_minimo: 5.0,
-    custo_unitario: 9.3,
-    ativo: false,
-  },
-]
+import { 
+  listarInsumos, 
+  criarInsumo, 
+  atualizarInsumo, 
+  removerInsumo,
+  type Insumo 
+} from "@/services/api/insumo.service"
+import { registrarEntradaInsumo } from "@/services/api/entrada-insumo.service"
 
 export default function InsumosPage() {
   const { toast } = useToast()
+  const navigate  = useNavigate()
 
   const [search, setSearch] = useState("")
-  const [insumos, setInsumos] = useState<InsumoItem[]>([])
+  const [insumos, setInsumos] = useState<Insumo[]>([])
   const [loading, setLoading] = useState(true)
 
+  const [filtroTipo, setFiltroTipo] = useState("")
+  const [filtroStatus, setFiltroStatus] = useState("")
+  const [tempTipo, setTempTipo] = useState("")
+  const [tempStatus, setTempStatus] = useState("")
   const [filterModalOpen, setFilterModalOpen] = useState(false)
-  // filtro e temp de cada filtro específico de insumo
 
   const [removeModalOpen, setRemoveModalOpen] = useState(false)
   const [idParaRemover, setIdParaRemover] = useState<number | null>(null)
@@ -91,18 +54,24 @@ export default function InsumosPage() {
   // Modais de Formulário
   const [cadastroModalOpen, setCadastroModalOpen] = useState(false)
   const [edicaoModalOpen, setEdicaoModalOpen] = useState(false)
-  const [insumoSelecionado, setInsumoSelecionado] = useState<InsumoItem | null>(
-    null
-  )
+  const [insumoSelecionado, setInsumoSelecionado] = useState<Insumo | null>(null)
 
-  // Busca local por enquanto
+  const [entradaModalOpen, setEntradaModalOpen] = useState(false)
+  const [insumoParaEntrada, setInsumoParaEntrada] = useState<Insumo | null>(null)
+
   const fetchInsumos = useCallback(async () => {
     setLoading(true)
     try {
-      const filtrados = MOCK_INSUMOS.filter((item) =>
-        item.nome.toLowerCase().includes(search.toLowerCase())
-      )
-      setInsumos(filtrados)
+      const filtros: any = {}
+      if (search) filtros.nome = search
+      if (filtroTipo) filtros.tipo = filtroTipo
+      if (filtroStatus) filtros.ativo = filtroStatus === "ativos"
+
+      const data = await listarInsumos(filtros)
+
+      const ordenados = [...(data.insumos || [])].sort((a, b) => a.id - b.id)
+
+      setInsumos(ordenados)
     } catch {
       toast({
         title: "Erro ao carregar insumos",
@@ -113,7 +82,7 @@ export default function InsumosPage() {
     } finally {
       setLoading(false)
     }
-  }, [search, toast])
+  }, [search, filtroTipo, filtroStatus, toast])
 
   useEffect(() => {
     const handler = setTimeout(() => fetchInsumos(), 500)
@@ -123,10 +92,11 @@ export default function InsumosPage() {
   const onCadastrar = async (data: InsumoFormData) => {
     try {
       console.log("Payload de Cadastro para o FastAPI:", data)
+      await criarInsumo(data)
 
       toast({
-        title: "Sucesso!",
-        description: "Insumo cadastrado com sucesso (Mock).",
+        title: "Insumo cadastrado!",
+        description: "Insumo cadastrado com sucesso.",
         variant: "success",
       })
 
@@ -134,7 +104,7 @@ export default function InsumosPage() {
       fetchInsumos()
     } catch {
       toast({
-        title: "Erro",
+        title: "Erro ao cadastrar",
         description: "Falha ao cadastrar insumo.",
         variant: "danger",
       })
@@ -142,12 +112,15 @@ export default function InsumosPage() {
   }
 
   const onEditar = async (data: InsumoFormData) => {
+    if (!insumoSelecionado) return
+
     try {
       console.log(`Payload de Edição para o ID ${insumoSelecionado?.id}:`, data)
+      await atualizarInsumo(insumoSelecionado.id, data as any)
 
       toast({
-        title: "Sucesso!",
-        description: "Insumo atualizado com sucesso (Mock).",
+        title: "Insumo editado!",
+        description: "Insumo atualizado com sucesso.",
         variant: "success",
       })
 
@@ -156,7 +129,7 @@ export default function InsumosPage() {
       fetchInsumos()
     } catch {
       toast({
-        title: "Erro",
+        title: "Erro ao editar",
         description: "Falha ao editar insumo.",
         variant: "danger",
       })
@@ -168,8 +141,8 @@ export default function InsumosPage() {
 
     setIsRemoving(true)
     try {
-      // algo como await removerInsumo(idParaRemover)
-
+      await removerInsumo(idParaRemover)
+      
       toast({
         title: "Insumo removido",
         description: "O insumo foi removido com sucesso.",
@@ -190,7 +163,43 @@ export default function InsumosPage() {
     }
   }
 
-  // constantes de labels de filtros de insumo
+  const onRegistrarEntrada = async (data: EntradaInsumoFormData) => {
+    if (!insumoParaEntrada) return
+
+    try {
+      await registrarEntradaInsumo({
+        insumo_id: insumoParaEntrada.id,
+        quantidade_comprada: data.quantidade_comprada,
+        valor_total_pago: data.valor_total_pago,
+      })
+
+      toast({
+        title: "Entrada registrada!",
+        description: `O estoque de ${insumoParaEntrada.nome} foi atualizado com sucesso.`,
+        variant: "success",
+      })
+
+      setEntradaModalOpen(false)
+      setInsumoParaEntrada(null)
+      fetchInsumos()
+    } catch {
+      toast({
+        title: "Erro ao registrar entrada",
+        description: "Não foi possível processar a entrada do insumo no backend.",
+        variant: "danger",
+      })
+    }
+  }
+
+  const tipoLabels: Record<string, string> = {
+    materia_prima: "Matéria-Prima",
+    embalagem: "Embalagem",
+  }
+
+  const statusLabels: Record<string, string> = {
+    ativos: "Ativos",
+    inativos: "Inativos",
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -218,7 +227,8 @@ export default function InsumosPage() {
                 variant="primary"
                 size="lg"
                 onClick={() => {
-                  //setStatusTemp de cada filtro de insumo
+                  setTempTipo(filtroTipo)
+                  setTempStatus(filtroStatus)
                   setFilterModalOpen(true)
                 }}
               >
@@ -237,6 +247,39 @@ export default function InsumosPage() {
           </div>
 
           {/* Área de Tags de Filtro */}
+          {(filtroStatus || filtroTipo) && (
+            <div className="flex flex-row gap-2">
+              {filtroStatus && (
+                <div className="text-body-sm flex items-center gap-1 rounded-xs bg-(--bg-sidebar) px-2 py-1 text-(--txt-primary)">
+                  <strong>Status:</strong> {statusLabels[filtroStatus]}
+                  <button
+                    onClick={() => {
+                      setFiltroStatus("")
+                      setTempStatus("")
+                    }}
+                    className="ml-1 cursor-pointer text-(--txt-secondary) hover:text-(--color-red)"
+                  >
+                    <XIcon size={12} />
+                  </button>
+                </div>
+              )}
+              
+              {filtroTipo && (
+                <div className="text-body-sm flex items-center gap-1 rounded-xs bg-(--bg-sidebar) px-2 py-1 text-(--txt-primary)">
+                  <strong>Tipo:</strong> {tipoLabels[filtroTipo]}
+                  <button
+                    onClick={() => {
+                      setFiltroTipo("")
+                      setTempTipo("")
+                    }}
+                    className="ml-1 cursor-pointer text-(--txt-secondary) hover:text-(--color-red)"
+                  >
+                    <XIcon size={12} />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Área de Carregamento e Tabelas*/}
           {loading ? (
@@ -253,13 +296,15 @@ export default function InsumosPage() {
                     {
                       key: "tipo",
                       label: "Tipo",
-                      render: (row: InsumoItem) => (
-                        <span className="bg-brand/10 text-body-sm text-brand rounded-full px-2 py-0.5 font-medium">
-                          {row.tipo === "MP"
-                            ? "Matéria-Prima"
-                            : row.tipo === "EMBALAGEM"
-                              ? "Embalagem"
-                              : "Outros"}
+                      render: (row: Insumo) => (
+                        <span 
+                          className={`text-body-sm rounded-full px-2 py-0.5 font-medium ${
+                            row.tipo === "materia_prima" 
+                              ? "bg-brand/10 text-(--txt-link)"
+                              : "bg-(--color-blue)/15 text-(--color-blue)"
+                          }`}
+                        >
+                          {row.tipo === "materia_prima" ? "Matéria-Prima" : "Embalagem"}
                         </span>
                       ),
                     },
@@ -267,15 +312,18 @@ export default function InsumosPage() {
                       key: "quantidade_estoque",
                       label: "Estoque Atual",
                       sortable: true,
-                      render: (row: InsumoItem) => (
+                      render: (row: Insumo) => (
                         <span
                           className={
-                            row.quantidade_estoque <= row.estoque_minimo
+                            row.quantidade_estoque < row.estoque_minimo
                               ? "font-bold text-(--color-red)"
                               : ""
                           }
                         >
-                          {Number(row.quantidade_estoque).toFixed(3)}{" "}
+                          {new Intl
+                            .NumberFormat('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })
+                            .format(row.quantidade_estoque)
+                          }
                           {row.unidade_de_medida.toLowerCase()}
                         </span>
                       ),
@@ -284,9 +332,12 @@ export default function InsumosPage() {
                       key: "estoque_minimo",
                       label: "Estoque Mínimo",
                       sortable: true,
-                      render: (row: InsumoItem) => (
+                      render: (row: Insumo) => (
                         <span>
-                          {Number(row.estoque_minimo).toFixed(3)}
+                          {new Intl
+                            .NumberFormat('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })
+                            .format(row.estoque_minimo)
+                          }
                           {row.unidade_de_medida.toLowerCase()}
                         </span>
                       ),
@@ -295,7 +346,7 @@ export default function InsumosPage() {
                       key: "custo_unitario",
                       label: "Custo Unitário",
                       sortable: true,
-                      render: (row: InsumoItem) => (
+                      render: (row: Insumo) => (
                         <span>
                           {new Intl.NumberFormat("pt-BR", {
                             style: "currency",
@@ -308,10 +359,14 @@ export default function InsumosPage() {
                       key: "ativo",
                       label: "Status",
                       render: (
-                        row: InsumoItem // Mudar essa formatação depois
+                        row: Insumo
                       ) => (
                         <span
-                          className={`text-body-sm ${row.ativo ? "text-success" : "text-(--txt-secondary)"}`}
+                          className={`text-body-sm rounded-full px-2 py-0.5 font-medium ${
+                            row.ativo 
+                              ? "bg-(--color-green)/15 text-(--color-green)"
+                              : "bg-(--bg-sidebar) text-(--txt-secondary)"
+                          }`}
                         >
                           {row.ativo ? "Ativo" : "Inativo"}
                         </span>
@@ -323,6 +378,24 @@ export default function InsumosPage() {
                       className: "w-32",
                       render: (row) => (
                         <div className="-ml-2 flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-(--color-green) hover:bg-(--color-green)/10"
+                            onClick={() => {
+                              setInsumoParaEntrada(row)
+                              setEntradaModalOpen(true)
+                            }}
+                          >
+                            <PlusCircleIcon size={18} weight="bold" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => navigate(`/insumos/${row.id}`)}
+                          >
+                            <EyeIcon size={16} />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="sm"
@@ -359,20 +432,37 @@ export default function InsumosPage() {
                 <MobileTable
                   columns={[
                     { key: "nome", label: "Nome", sortable: true },
-                    { key: "tipo", label: "Tipo" },
+                    { 
+                      key: "tipo", 
+                      label: "Tipo",
+                      render: (row: Insumo) => (
+                        <span 
+                          className={`text-body-sm rounded-full px-2 py-0.5 font-medium ${
+                            row.tipo === "materia_prima" 
+                              ? "bg-brand/10 text-(--txt-link)"
+                              : "bg-(--color-blue)/15 text-(--color-blue)"
+                          }`}
+                        >
+                          {row.tipo === "materia_prima" ? "Matéria-Prima" : "Embalagem"}
+                        </span>
+                      ),
+                    },
                     {
                       key: "quantidade_estoque",
                       label: "Estoque Atual",
                       sortable: true,
-                      render: (row: InsumoItem) => (
+                      render: (row: Insumo) => (
                         <span
                           className={
-                            row.quantidade_estoque <= row.estoque_minimo
+                            row.quantidade_estoque < row.estoque_minimo
                               ? "font-bold text-(--color-red)"
                               : ""
                           }
                         >
-                          {Number(row.quantidade_estoque).toFixed(3)}{" "}
+                          {new Intl.NumberFormat("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          }).format(row.quantidade_estoque)}
                           {row.unidade_de_medida.toLowerCase()}
                         </span>
                       ),
@@ -380,6 +470,24 @@ export default function InsumosPage() {
                   ]}
                   renderRightActions={(insumo) => (
                     <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-(--color-green) hover:bg-(--color-green)/10"
+                        onClick={() => {
+                          setInsumoParaEntrada(insumo)
+                          setEntradaModalOpen(true)
+                        }}
+                      >
+                        <PlusCircleIcon size={18} weight="bold" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate(`/insumos/${insumo.id}`)}
+                      >
+                        <EyeIcon size={16} />
+                      </Button>
                       <Button
                         variant="primary"
                         size="sm"
@@ -422,7 +530,8 @@ export default function InsumosPage() {
             <Button
               variant="outlined"
               onClick={() => {
-                // setFiltro e setTemp de cada filtro
+                setFiltroTipo("")
+                setFiltroStatus("")
                 setFilterModalOpen(false)
               }}
             >
@@ -431,7 +540,8 @@ export default function InsumosPage() {
             <Button
               variant="primary"
               onClick={() => {
-                // cada setFiltro recebendo o seu temp respectivo
+                setFiltroTipo(tempTipo)
+                setFiltroStatus(tempStatus)
                 setFilterModalOpen(false)
               }}
             >
@@ -440,7 +550,26 @@ export default function InsumosPage() {
           </>
         }
       >
-        {/*Filtros aqui*/}
+        <SelectField
+          label="Tipo de Insumo"
+          placeholder="Todos os Insumos"
+          options={[
+            { value: "materia_prima", label: "Matéria-Prima" },
+            { value: "embalagem", label: "Embalagem" }
+          ]}
+          value={tempTipo}
+          onValueChange={setTempTipo}
+        />
+        <SelectField
+          label="Status do Insumo"
+          placeholder="Todos os status"
+          options={[
+            { value: "ativos", label: "Ativos" },
+            { value: "inativos", label: "Inativos" }
+          ]}
+          value={tempStatus}
+          onValueChange={setTempStatus}
+        />
       </Modal>
 
       {/*Modal de Cadastro*/}
@@ -512,6 +641,28 @@ export default function InsumosPage() {
           </>
         }
       ></Modal>
+
+      {/* Modal de Entrada de Insumo */}
+      <Modal
+        open={entradaModalOpen}
+        onClose={() => {
+          setEntradaModalOpen(false)
+          setInsumoParaEntrada(null)
+        }}
+        title="Registrar Entrada de Estoque"
+      >
+        {insumoParaEntrada && (
+          <EntradaInsumoForm
+            insumoNome={insumoParaEntrada.nome}
+            unidadeMedida={insumoParaEntrada.unidade_de_medida}
+            onSubmit={onRegistrarEntrada}
+            onCancel={() => {
+              setEntradaModalOpen(false)
+              setInsumoParaEntrada(null)
+            }}
+          />
+        )}
+      </Modal>
     </div>
   )
 }

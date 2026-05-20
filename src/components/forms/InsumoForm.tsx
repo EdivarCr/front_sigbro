@@ -27,21 +27,28 @@ export function InsumoForm({ onSubmit, defaultValues, mode, onCancel }: InsumoFo
     control,
     register,
     handleSubmit,
+    watch,
     formState: { errors, isValid, isSubmitting },
   } = useForm<InsumoFormData>({
     resolver: zodResolver(insumoSchema) as Resolver<InsumoFormData>,
-    defaultValues: {
+    defaultValues: defaultValues ? {
+      ...defaultValues,
+      estoque_minimo: Number(defaultValues.estoque_minimo),
+      quantidade_estoque: Number(defaultValues.quantidade_estoque),
+      custo_unitario: Number(defaultValues.custo_unitario),
+    } : {
       nome: "",
       tipo: "",
       unidade_de_medida: "",
-      quantidade_estoque: 0,
       estoque_minimo: 0,
+      quantidade_estoque: 0,
       custo_unitario: 0,
       ativo: true,
-      ...defaultValues,
     },
-    mode: "all", // Executa a validação em tempo real em todas as interações
+    mode: "all",
   })
+
+  const unidadeSelecionada = watch("unidade_de_medida")
 
   const handleFormSubmit: SubmitHandler<InsumoFormData> = (data) => {
     onSubmit(data)
@@ -99,9 +106,8 @@ export function InsumoForm({ onSubmit, defaultValues, mode, onCancel }: InsumoFo
                 required
                 placeholder="Selecione um tipo"
                 options={[
-                  { value: "MP", label: "Matéria-Prima" },
-                  { value: "EMBALAGEM", label: "Embalagem" },
-                  { value: "OUTRO", label: "Outros" }
+                  { value: "materia_prima", label: "Matéria-Prima" },
+                  { value: "embalagem", label: "Embalagem" }
                 ]}
                 value={field.value}
                 onValueChange={(val) => {
@@ -121,12 +127,13 @@ export function InsumoForm({ onSubmit, defaultValues, mode, onCancel }: InsumoFo
                 label="Unidade de Medida"
                 required
                 placeholder="Selecione uma unidade"
+                disabled={mode === 'edit'}
                 options={[
-                  { value: "KG", label: "Quilograma (KG)" },
-                  { value: "G", label: "Grama (G)" },
-                  { value: "L", label: "Litro (L)" },
-                  { value: "ML", label: "Mililitro (ML)" },
-                  { value: "UN", label: "Unidade (UN)" }
+                  { value: "kg", label: "Quilograma (KG)" },
+                  { value: "g", label: "Grama (G)" },
+                  { value: "l", label: "Litro (L)" },
+                  { value: "ml", label: "Mililitro (ML)" },
+                  { value: "un", label: "Unidade (UN)" }
                 ]}
                 value={field.value}
                 onValueChange={(val) => {
@@ -148,33 +155,47 @@ export function InsumoForm({ onSubmit, defaultValues, mode, onCancel }: InsumoFo
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Input
-            label="Estoque Inicial"
-            type="number"
-            step="0.001"
-            iconLeft={<PackageIcon />}
-            error={errors.quantidade_estoque?.message}
-            {...register("quantidade_estoque")}
-            required
-          />
-          
-          <Input
             label="Estoque Mínimo"
             type="number"
             step="0.001"
             iconLeft={<PackageIcon />}
+            iconRight={
+              unidadeSelecionada ? (
+                <span className="text-body-sm font-bold text-(--txt-secondary) pr-2 uppercase">
+                  {unidadeSelecionada}
+                </span>
+              ) : undefined
+            }
             error={errors.estoque_minimo?.message}
-            {...register("estoque_minimo")}
+            {...register("estoque_minimo", { valueAsNumber: true })}
             required
           />
 
           <Input
-            label="Custo Unitário"
+            label="Estoque Atual"
+            type="number"
+            step="0.001"
+            iconLeft={<PackageIcon />}
+            iconRight={
+              unidadeSelecionada ? (
+                <span className="text-body-sm font-bold text-(--txt-secondary) pr-2 uppercase">
+                  {unidadeSelecionada}
+                </span>
+              ) : undefined
+            }
+            error={errors.quantidade_estoque?.message}
+            {...register("quantidade_estoque")}
+            disabled
+          />
+
+          <Input
+            label="Custo Unit. (R$)"
             type="number"
             step="0.01"
             iconLeft={<CurrencyDollarIcon />}
             error={errors.custo_unitario?.message}
             {...register("custo_unitario")}
-            required
+            disabled
           />
         </div>
       </div>

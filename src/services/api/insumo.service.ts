@@ -1,9 +1,7 @@
 import apiClient from "./client"
 
-// insumo.schema
-
-export type TipoInsumo = "MP" | "EMBALAGEM" | "OUTRO" 
-export type UnidadeMedida = "KG" | "G" | "L" | "ML" | "UN"
+export type TipoInsumo = "materia_prima" | "embalagem" 
+export type UnidadeMedida = "kg" | "g" | "l" | "ml" | "un"
 
 export interface Insumo {
   id: number
@@ -18,11 +16,44 @@ export interface Insumo {
   atualizado_em: string
 }
 
-export type InsumoCreate = Omit<Insumo, "id" | "criado_em" | "atualizado_em">
-export type InsumoUpdate = Partial<InsumoCreate>
+// O back só aceita estes campos na criação (InsumoBase)
+export interface InsumoCreate {
+  nome: string
+  tipo: TipoInsumo
+  unidade_de_medida: UnidadeMedida
+  estoque_minimo: number
+}
 
-export async function listarInsumos() {
-  const response = await apiClient.get<Insumo[]>("/insumos")
+// Update permite campos opcionais, incluindo a mudança de status (ativo)
+export interface InsumoUpdate {
+  nome?: string
+  tipo?: TipoInsumo
+  estoque_minimo?: number
+  ativo?: boolean
+}
+
+export interface InsumoListResponse {
+  insumos: Insumo[]
+  offset: number
+  limit: number
+}
+
+export interface FilterInsumo {
+  offset?: number
+  limit?: number
+  nome?: string
+  tipo?: string
+  ativo?: boolean
+}
+
+export async function listarInsumos(filtros?: FilterInsumo) {
+  // Se tem filtro (além de offset/limit), usa a rota de pesquisa
+  const isPesquisa = filtros?.nome || filtros?.tipo || typeof filtros?.ativo === "boolean"
+  const url = isPesquisa ? "/insumos/pesquisa" : "/insumos/"
+
+  const response = await apiClient.get<InsumoListResponse>(url, {
+    params: filtros
+  })
   return response.data
 }
 
@@ -31,17 +62,27 @@ export async function obterInsumoPorId(id: number) {
   return response.data
 }
 
-export async function criarInsumo(data: InsumoCreate) {
-  const response = await apiClient.post<Insumo>("/insumos", data)
+export async function criarInsumo(data: any) {
+  const payload: InsumoCreate = {
+    nome: data.nome,
+    tipo: data.tipo,
+    unidade_de_medida: data.unidade_de_medida,
+    estoque_minimo: data.estoque_minimo
+  }
+  
+  const response = await apiClient.post<Insumo>("/insumos/", payload)
   return response.data
 }
 
 export async function atualizarInsumo(id: number, data: InsumoUpdate) {
-  const response = await apiClient.put<Insumo>(`/insumos/${id}`, data)
+  const response = await apiClient.patch<Insumo>(`/insumos/${id}`, data)
   return response.data
 }
 
+// Delete usando a rota de patch, para mudar apenas o status de insumo
 export async function removerInsumo(id: number) {
-  const response = await apiClient.delete<Insumo>(`/insumos/${id}`)
+  const response = await apiClient.patch<Insumo>(`/insumos/${id}`, {
+    ativo: false
+  })
   return response.data
 }

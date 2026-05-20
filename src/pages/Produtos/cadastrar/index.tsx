@@ -5,7 +5,6 @@ import {
   type ProdutoFormData,
 } from "@/schemas/produto.schema"
 import { ProductForm } from "@/components/forms/ProductForm"
-import { type ProdutoListItem } from "@/services/api/produtos.service"
 import { cadastrarProduto } from "@/services/api/produtos.service"
 
 export default function CadastrarProdutoPage(){
@@ -18,33 +17,6 @@ export default function CadastrarProdutoPage(){
       const imageFile = (data as any).image || null 
     
       const response = await cadastrarProduto(data, imageFile)
-
-      const mockResponse: ProdutoListItem = {
-        id: Math.floor(Math.random() * 1000), // Gera um ID aleatório para o teste
-        nome: data.nome,
-        descricao: data.descricao,
-        tipo: data.tipo as "molho" | "geleia" | "conserva",
-        
-        preco_varejo: Number(data.preco_varejo),
-        preco_atacado: Number(data.preco_atacado),
-        peso_gramas: data.peso_gramas ? String(data.peso_gramas) : "0.00",
-        
-        nivel_picancia: data.nivel_picancia || 0,
-        alergenicos: data.alergenicos || "",
-        tem_carolina_reaper: data.tem_carolina_reaper || false,
-        
-        // Campos que o banco gera automaticamente
-        imagem_path: null,
-        imagem_bucket: null,
-        ativo: true,
-        criado_em: new Date().toISOString(),
-        atualizado_em: new Date().toISOString(),
-        
-        // Campos de estoque e validade
-        estoque_minimo: data.estoque_minimo || 10,
-        validade_meses: data.validade_meses || 0,
-        unidades_por_caixa: data.unidades_por_caixa || 1,
-      };
 
       console.log("JSON de resposta do servidor:", response)
       toast({
