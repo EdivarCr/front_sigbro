@@ -22,6 +22,7 @@ interface TableProps<T> {
   data: T[]
   emptyValue?: string
   pageSize?: number
+  noRenderFooter?: boolean
 }
 
 type SortDirection = "asc" | "desc" | null
@@ -30,8 +31,9 @@ type SortDirection = "asc" | "desc" | null
 export function Table<T extends { id?: string | number }>({
   columns,
   data,
-  emptyValue,
+  emptyValue = "N/A",
   pageSize = 10,
+  noRenderFooter = false
 }: TableProps<T>) {
   const [currentPage, setCurrentPage] = useState(1)
   const [sortKey, setSortKey] = useState<string | null>(null)
@@ -157,31 +159,36 @@ export function Table<T extends { id?: string | number }>({
           </tbody>
         </table>
       </div>
-      <div className="sticky bottom-0 flex items-center justify-between gap-4 border-t border-(--border-default) bg-(--bg-primary) px-2 py-1">
-        <span className="font-sans text-xs font-bold text-(--txt-primary)">
-          {data.length === 0
-            ? "0 registros"
-            : `${start + 1}-${Math.min(end, data.length)} de ${data.length} registros`}
-        </span>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-          >
-            <CaretLeftIcon size={16} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages || totalPages === 0}
-          >
-            <CaretRightIcon size={16} />
-          </Button>
+
+      {!noRenderFooter && (
+        <div className="sticky bottom-0 flex items-center justify-between gap-4 border-t border-(--border-default) bg-(--bg-primary) px-2 py-1">
+          <span className="font-sans text-xs font-bold text-(--txt-primary)">
+            {data.length === 0
+              ? "0 registros"
+              : `${start + 1}-${Math.min(end, data.length)} de ${data.length} registros`}
+          </span>
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              <CaretLeftIcon size={16} />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages || totalPages === 0}
+            >
+              <CaretRightIcon size={16} />
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
