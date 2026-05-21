@@ -17,10 +17,17 @@ export default function EditarProdutoPage(){
   
   const BUCKET = "SigBro_imgs/"
   const urlBase = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/`;
+ 
   const valoresIniciais = {
     ...produto,
+
     image: produto?.imagem_path ? `${urlBase}${BUCKET}${produto.imagem_path}` : null,
     alergenicos: produto?.alergenicos ?? "",
+    
+    receita: (produto?.formulas || []).map((item: any) => ({
+      insumo_id: item.insumo_id,
+      quantidade_necessaria: Number(item.quantidade_necessaria),
+    })),
   } as ProdutoFormData;
   
   const { toast } = useToast()
@@ -60,10 +67,17 @@ export default function EditarProdutoPage(){
 
       const imageToProcess = data.image === null 
         ? null 
-        : (data.image instanceof File 
+        : (data.image && data.image.name 
             ? data.image 
             : undefined);
+
       await editarProduto(Number(id), data, imageToProcess)
+      
+      if (imageToProcess !== undefined) {
+        await new Promise((resolve) => setTimeout(resolve, 400));
+
+        await editarProduto(Number(id), data, imageToProcess)
+      }
 
       toast({
         title: "Produto editado!",
