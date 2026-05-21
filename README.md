@@ -1,4 +1,4 @@
-# 🌶️ SisBro v2.0 — Sistema Pimenta Dr. Broa (Front-end)
+# 🌶️ SigBro v2.0 — Sistema Pimenta Dr. Broa (Front-end)
 
 **SPA para gestão de produção e vendas de pimentas artesanais.**
 
