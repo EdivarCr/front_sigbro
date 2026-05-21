@@ -196,7 +196,28 @@ export default function ProdutosPage() {
                 <Table
                   columns={[
                     { key: "nome", label: "Nome", sortable: true },
-                    { key: "tipo", label: "Tipo", sortable: true },
+                    { key: "tipo",
+                      label: "Tipo",
+                      sortable: true,
+                      render: (row) => {
+                        const tipoLower = String(row.tipo).toLowerCase();
+                        const label = tipoLabels[tipoLower] || row.tipo;
+
+                        const colorClasses: Record<string, string> = {
+                          molho: "bg-(--color-red)/15 text-(--color-red)",
+                          geleia: "bg-(--color-blue)/15 text-(--color-blue)", // Excelente contraste para doces/geleias
+                          conserva: "bg-(--color-yellow)/15 text-(--color-yellow)", // Perfeito para o tom âmbar de conservas
+                        };
+
+                        const classeFinal = colorClasses[tipoLower] || "bg-(--bg-sidebar) text-(--txt-secondary)";
+
+                        return (
+                          <span className={`text-body-sm rounded-full px-2 py-0.5 font-medium ${classeFinal}`}>
+                            {label}
+                          </span>
+                        );
+                      },
+                    },
                     {
                       key: "preco_varejo",
                       label: "Preço Varejo",
@@ -245,14 +266,16 @@ export default function ProdutosPage() {
                       key: "ativo",
                       label: "Status",
                       render: (row) => (
-                        <span className={`text-label w-fit px-2 py-0.5 rounded-full ${
-                          row.ativo
-                            ? "bg-(--color-green) text-(--txt-on-brand)"
-                            : "bg-(--bg-sidebar) text-(--txt-secondary)"
-                        }`}>
+                        <span
+                          className={`text-body-sm rounded-full px-2 py-0.5 font-medium ${
+                            row.ativo 
+                              ? "bg-(--color-green)/15 text-(--color-green)"
+                              : "bg-(--bg-sidebar) text-(--txt-secondary)"
+                          }`}
+                        >
                           {row.ativo ? "Ativo" : "Inativo"}
                         </span>
-                      ),
+                      )
                     },
                     {
                       key: "acoes",
@@ -302,7 +325,27 @@ export default function ProdutosPage() {
                 <MobileTable 
                   columns={[
                     { key: "nome", label: "Produto" },
-                    { key: "tipo", label: "Categoria" },
+                    { key: "tipo",
+                      label: "Categoria",
+                      render: (row) => {
+                        const tipoLower = String(row.tipo).toLowerCase();
+                        const label = tipoLabels[tipoLower] || row.tipo;
+
+                        const colorClasses: Record<string, string> = {
+                          molho: "bg-(--color-red)/15 text-(--color-red)",
+                          geleia: "bg-(--color-blue)/15 text-(--color-blue)", // Excelente contraste para doces/geleias
+                          conserva: "bg-(--color-yellow)/15 text-(--color-yellow)", // Perfeito para o tom âmbar de conservas
+                        };
+
+                        const classeFinal = colorClasses[tipoLower] || "bg-(--bg-sidebar) text-(--txt-secondary)";
+
+                        return (
+                          <span className={`text-body-sm rounded-full px-2 py-0.5 font-medium ${classeFinal}`}>
+                            {label}
+                          </span>
+                        );
+                      },
+                    },
                     { 
                       key: "preco_varejo", 
                       label: "Preço", 

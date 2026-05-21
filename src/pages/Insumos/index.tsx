@@ -312,21 +312,18 @@ export default function InsumosPage() {
                       key: "quantidade_estoque",
                       label: "Estoque Atual",
                       sortable: true,
-                      render: (row: Insumo) => (
-                        <span
-                          className={
-                            row.quantidade_estoque < row.estoque_minimo
-                              ? "font-bold text-(--color-red)"
-                              : ""
-                          }
-                        >
-                          {new Intl
-                            .NumberFormat('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })
-                            .format(row.quantidade_estoque)
-                          }
-                          {row.unidade_de_medida.toLowerCase()}
-                        </span>
-                      ),
+                      render: (row: Insumo) => {
+                        const estoqueAtual = Number(row.quantidade_estoque);
+                        const estoqueMin = Number(row.estoque_minimo);
+                        
+                        const isEstoqueBaixo = estoqueAtual < estoqueMin;
+
+                        return (
+                          <span className={isEstoqueBaixo ? "text-(--color-red) font-bold" : "text-(--txt-primary)"}>
+                            {estoqueAtual.toLocaleString("pt-BR", { minimumFractionDigits: 3 })} {row.unidade_de_medida}
+                          </span>
+                        )
+                      },
                     },
                     {
                       key: "estoque_minimo",
@@ -451,21 +448,18 @@ export default function InsumosPage() {
                       key: "quantidade_estoque",
                       label: "Estoque Atual",
                       sortable: true,
-                      render: (row: Insumo) => (
-                        <span
-                          className={
-                            row.quantidade_estoque < row.estoque_minimo
-                              ? "font-bold text-(--color-red)"
-                              : ""
-                          }
-                        >
-                          {new Intl.NumberFormat("pt-BR", {
-                            style: "currency",
-                            currency: "BRL",
-                          }).format(row.quantidade_estoque)}
-                          {row.unidade_de_medida.toLowerCase()}
-                        </span>
-                      ),
+                      render: (row: Insumo) => {
+                        const estoqueAtual = Number(row.quantidade_estoque);
+                        const estoqueMin = Number(row.estoque_minimo);
+                        
+                        const isEstoqueBaixo = estoqueAtual < estoqueMin;
+
+                        return (
+                          <span className={isEstoqueBaixo ? "text-(--color-red) font-bold" : "text-(--txt-primary)"}>
+                            {estoqueAtual.toLocaleString("pt-BR", { minimumFractionDigits: 3 })} {row.unidade_de_medida}
+                          </span>
+                        )
+                      },
                     },
                   ]}
                   renderRightActions={(insumo) => (
