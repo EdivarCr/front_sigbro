@@ -1,25 +1,39 @@
 import apiClient from "./client"
 import type { ProdutoFormData } from "@/schemas/produto.schema"
 
+export type TipoProduto = "molho" | "geleia" | "conserva"
+
+export interface ProdutoInsumoCreate {
+  insumo_id: number
+  quantidade_necessaria: number
+}
+
+export interface FormulaItem {
+  insumo_id: number
+  quantidade_necessaria: string | number
+}
+
 export interface ProdutoListItem {
   id: number
   nome: string
   descricao: string
-  tipo: "molho" | "geleia" | "conserva"
+  tipo: TipoProduto
   preco_varejo: number
   preco_atacado: number
-  peso_gramas: number | string | null
+  peso_gramas: number | null
   nivel_picancia: number
-  alergenicos: string
+  alergenicos: string | null
   tem_carolina_reaper: boolean
   imagem_path: string | null
   imagem_bucket: string | null
+  imagem_url: string | null
   ativo: boolean
   criado_em: string
   atualizado_em: string
   estoque_minimo: number
   validade_meses: number
   unidades_por_caixa: number
+  formulas: FormulaItem[]
 }
 
 export interface ProdutoListResponse {
@@ -39,20 +53,10 @@ export interface ProdutoFiltros {
 }
 
 // Lista produtos (admin)
-export async function listarProdutos(
-  filtros?: ProdutoFiltros
-): Promise<ProdutoListResponse> {
-  const params = new URLSearchParams()
-  if (filtros?.nome) params.append("nome", filtros.nome)
-  if (filtros?.tipo) params.append("tipo", filtros.tipo)
-  if (filtros?.ativo !== undefined)
-    params.append("ativo", String(filtros.ativo))
-  if (filtros?.offset !== undefined)
-    params.append("offset", String(filtros.offset))
-  if (filtros?.limit !== undefined)
-    params.append("limit", String(filtros.limit))
-
-  const response = await apiClient.get(`/produtos/pesquisa?${params}`)
+export async function listarProdutos(filtros?: ProdutoFiltros): Promise<ProdutoListResponse> {
+  const response = await apiClient.get<ProdutoListResponse>("/produtos/pesquisa", {
+    params: filtros
+  })
   return response.data
 }
 
@@ -69,37 +73,83 @@ export async function buscarProduto(id: number): Promise<ProdutoListItem> {
   return produto
 }
 
+// Post/Patch de Imagens
+async function gerenciarImagemProduto(produtoId: number, imageFile: File | null, isUpdate = false) {
+  const formData = new FormData()
+
+  console.log("Objeto recebido no serviço:", imageFile); // DEBUG
+
+  if (isUpdate) {
+    // PATCH /produtos/{produto_id}/update_image
+    if (imageFile && imageFile.name) {
+      formData.append("image", imageFile)
+      console.log("Anexou a imagem no FormData? SIM!"); // DEBUG
+    } else if (imageFile === null) {
+      formData.append("remove_image", "true")
+    }
+    
+    await apiClient.patch(`/produtos/${produtoId}/update_image`, formData, {
+      // TRUQUE DE MESTRE: Remove qualquer Content-Type global do apiClient
+      // Isso força o navegador a assumir o controle e gerar o boundary perfeito
+      transformRequest: (data, headers) => {
+        delete headers['Content-Type'];
+        delete headers['content-type'];
+        return data;
+      }
+    })
+
+  } else {
+    // POST /produtos/imagem_produto?id_produto={id}
+   if (imageFile && imageFile.name) {
+      formData.append("image", imageFile)
+      
+      await apiClient.post(`/produtos/imagem_produto`, formData, {
+        params: { id_produto: produtoId },
+        transformRequest: (data, headers) => {
+          delete headers['Content-Type'];
+          delete headers['content-type'];
+          return data;
+        }
+      })
+    }
+  }
+}
+
 // Cadastra produto
 export async function cadastrarProduto(
   data: ProdutoFormData,
   imageFile?: File | null
 ): Promise<ProdutoListItem> {
-  const formData = new FormData()
+  // 1. Cria o Produto enviando JSON (A 'receita' vai embutida no objeto)
+  const payload = {
+    nome: data.nome,
+    descricao: data.descricao,
+    tipo: data.tipo,
+    preco_varejo: data.preco_varejo,
+    preco_atacado: data.preco_atacado,
+    nivel_picancia: data.nivel_picancia ?? 0,
+    alergenicos: data.alergenicos ?? "",
+    tem_carolina_reaper: data.tem_carolina_reaper ?? false,
+    estoque_minimo: data.estoque_minimo ?? 10,
+    validade_meses: data.validade_meses ?? 0,
+    unidades_por_caixa: data.unidades_por_caixa ?? 1,
+    peso_gramas: data.peso_gramas || null,
+    formulas: data.receita
+  }
 
-  // Campos do produto
-  formData.append("nome", data.nome)
-  formData.append("descricao", data.descricao)
-  formData.append("tipo", data.tipo)
-  formData.append("preco_varejo", String(data.preco_varejo))
-  formData.append("preco_atacado", String(data.preco_atacado))
-  formData.append("nivel_picancia", String(data.nivel_picancia ?? 0))
-  formData.append("alergenicos", data.alergenicos ?? "")
-  formData.append(
-    "tem_carolina_reaper",
-    String(data.tem_carolina_reaper ?? false)
-  )
-  formData.append("estoque_minimo", String(data.estoque_minimo ?? 10))
-  formData.append("validade_meses", String(data.validade_meses ?? 0))
-  formData.append("unidades_por_caixa", String(data.unidades_por_caixa ?? 1))
-  if (data.peso_gramas) formData.append("peso_gramas", String(data.peso_gramas))
+  const response = await apiClient.post<ProdutoListItem>("/produtos/", payload)
+  const produtoCriado = response.data
 
-  // Imagem
-  if (imageFile) formData.append("image", imageFile)
+  // 2. Se houver imagem, faz o upload chamando a rota de imagem com o ID gerado
+  if (imageFile) {
+    try {
+      await gerenciarImagemProduto(produtoCriado.id, imageFile, false)
+    } catch (error) {
+      console.error("Produto criado, mas falha ao enviar imagem:", error)
+    }
+  }
 
-  const response = await apiClient.post("/produtos/", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  })
-  return response.data
+  return produtoCriado
 }
 
 // Edita produto
@@ -108,24 +158,20 @@ export async function editarProduto(
   data: Partial<ProdutoFormData>,
   imageFile?: File | null
 ): Promise<ProdutoListItem> {
-  const formData = new FormData()
 
-  Object.entries(data).forEach(([key, value]) => {
-    if (key !== "image" && value !== undefined && value !== null) {
-      formData.append(key, String(value))
-    }
-  })
+  const payloadJson = Object.fromEntries(
+    Object.entries(data).filter(([key, value]) => key !== "image" && value !== undefined)
+  )
+
+  const response = await apiClient.patch<ProdutoListItem>(`/produtos/${id}`, payloadJson)
   
-  if (imageFile instanceof File) {
-    formData.append("image", imageFile) // Upload de arquivo novo
-  } else if (imageFile === null) {
-    formData.append("remove_image", "true") // Comando para remover imagem atual
-    console.log("Sinal de remoção enviado.")
+  if (imageFile !== undefined) {
+    try {
+      await gerenciarImagemProduto(id, imageFile, true)
+    } catch (error) {
+      console.error("Falha ao atualizar a imagem do produto:", error)
+    }
   }
 
-  console.log("Imagem sendo enviada:", formData.get("image"));
-  const response = await apiClient.patch(`/produtos/${id}`, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  })
   return response.data
 }
