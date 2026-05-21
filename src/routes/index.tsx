@@ -21,12 +21,15 @@ import EditarProdutoPage from "@/pages/Produtos/editar"
 import VisualizarProdutoPage from "@/pages/Produtos/detalhes"
 
 import InsumosPage from "@/pages/Insumos"
-import InsumoDetalhesPage from "@/pages/Insumos/detalhes" // Importe a nova página
+import InsumoDetalhesPage from "@/pages/Insumos/detalhes"
 
 import EstoquePage from "@/pages/Estoque"
+import CadastrarEstoquePage from "@/pages/Estoque/Cadastrar"
+import DetalhesEstoquePage from "@/pages/Estoque/Detalhes"
+import EditarEstoquePage from "@/pages/Estoque/Editar"
+
 import VendasPage from "@/pages/Vendas"
 import PDVsPage from "@/pages/PDVs"
-
 
 export const router = createBrowserRouter([
   // Rotas públicas
@@ -47,7 +50,23 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // Rotas protegidas
+  // ROTA TEMPORÁRIA (Acesso livre para testes)
+  {
+    element: <MainLayout />,
+    children: [
+      {
+        path: "/estoque",
+        children: [
+          { index: true, element: <EstoquePage /> },
+          { path: "cadastrar", element: <CadastrarEstoquePage /> },
+          { path: ":id", element: <DetalhesEstoquePage /> },
+          { path: "editar/:id", element: <EditarEstoquePage /> },
+        ],
+      },
+    ],
+  },
+
+  // Rotas protegidas (Originais)
   {
     element: <ProtectedRoute />,
     children: [
@@ -56,6 +75,7 @@ export const router = createBrowserRouter([
         children: [
           { path: "/", element: <DashboardPage /> },
           { path: "/perfil", element: <PerfilPage /> },
+          
           {
             path: "/produtos",
             children: [
@@ -71,7 +91,6 @@ export const router = createBrowserRouter([
               { path: ":id", element: <InsumoDetalhesPage/> }, 
             ]},
           { path: "/vendas", element: <VendasPage /> },
-          { path: "/estoque", element: <EstoquePage /> },
           { path: "/pdvs", element: <PDVsPage /> },
         ],
       },
