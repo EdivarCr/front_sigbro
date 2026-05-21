@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { useToast } from "@/context/ToastContext"
 import { buscarProduto, editarProduto, type ProdutoListItem } from "@/services/api/produtos.service"
+import { listarInsumos } from "@/services/api/insumo.service"
 import { 
   ScalesIcon, 
   CurrencyDollarIcon, 
@@ -11,9 +12,11 @@ import {
   WarningIcon,
   TrashIcon,
   PencilSimpleIcon,
+  NotepadIcon
 } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 import { Modal } from "@/components/ui/modal"
+import { Table } from "@/components/ui/table"
 
 export default function VisualizarProdutoPage(){
   const { id } = useParams()
@@ -21,6 +24,7 @@ export default function VisualizarProdutoPage(){
   const navigate = useNavigate()
 
   const [produto, setProduto] = useState<ProdutoListItem | null>(null)
+  const [insumosDict, setInsumosDict] = useState<Record<number, any>>({})
   const [loading, setLoading] = useState(true)
   const [activeImage, setActiveImage] = useState<string | undefined>(undefined)
 
@@ -67,20 +71,27 @@ export default function VisualizarProdutoPage(){
       if (!id) return
       try {
         setLoading(true)
-        const data = await buscarProduto(Number(id))
+        const [dataProduto, dataInsumos] = await Promise.all([
+          buscarProduto(Number(id)),
+          listarInsumos() 
+        ])
         
-        if (!data) throw new Error("Produto não encontrado")
+        if (!dataProduto) throw new Error("Produto não encontrado")
         
-        setProduto(data)
+        setProduto(dataProduto)
+
+        const dict: Record<number, any> = {}
+        if (dataInsumos && dataInsumos.insumos) {
+          dataInsumos.insumos.forEach((insumo: any) => {
+            dict[insumo.id] = insumo
+          })
+        }
+        setInsumosDict(dict)
         
-        // Lógica da Imagem: Se imagem_path existir, monta a URL do Supabase
-        const BUCKET = "SigBro_imgs/"
-        const urlBase = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/`
-        const mainImg = data.imagem_path 
-          ? `${urlBase}${BUCKET}${data.imagem_path}`
+        const mainImg = dataProduto.imagem_path 
+          ? `${urlBase}${BUCKET}${dataProduto.imagem_path}`
           : "https://placehold.co/400x400?text=Sem+Imagem"
         setActiveImage(mainImg)
-
       } catch (error) {
         toast({
           title: "Erro ao carregar produto",
@@ -93,7 +104,7 @@ export default function VisualizarProdutoPage(){
       }
     }
     loadProduto()
-  }, [id, navigate, toast])
+  }, [id, navigate, toast, urlBase])
 
   if (loading) {
     return (
@@ -113,6 +124,34 @@ export default function VisualizarProdutoPage(){
       </div>
     )
   }
+
+  const colunasReceita = [
+    {
+      key: "insumo_id",
+      label: "Insumo",
+      render: (formula: any) => {
+        const insumoInfo = insumosDict[formula.insumo_id]
+        return (
+          <span className="font-medium text-(--txt-primary)">
+            {insumoInfo ? insumoInfo.nome : `Insumo ID #${formula.insumo_id}`}
+          </span>
+        )
+      }
+    },
+    {
+      key: "quantidade_necessaria",
+      label: "Qtd. Necessária",
+      render: (formula: any) => {
+        const insumoInfo = insumosDict[formula.insumo_id]
+        const unidadeDeMedida = insumoInfo ? insumoInfo.unidade_de_medida : ""
+        return (
+          <div className="font-mono text-(--txt-secondary)">
+            {Number(formula.quantidade_necessaria).toFixed(3).replace(".", ",")} {unidadeDeMedida}
+          </div>
+        )
+      }
+    }
+  ]
 
   return(
     <div className="flex h-full flex-col">
@@ -271,6 +310,22 @@ export default function VisualizarProdutoPage(){
               </div>
             </div>
           </div>
+
+          {/* 3. TABELA DE COMPOSIÇÃO  */}
+          {produto.formulas && produto.formulas.length > 0 && (
+            <section className="bg-(--bg-surface) p-6 rounded-sm border border-(--bg-sidebar) shadow-sm">
+              <div className="flex items-center gap-2 mb-4 border-b border-(--bg-sidebar) pb-2">
+                <NotepadIcon size={20} className="text-(--txt-link)" />
+                <h3 className="font-bold uppercase text-body-sm text-(--txt-secondary)">Receita / Insumos Necessários</h3>
+              </div>
+              
+              <Table 
+                data={produto.formulas} 
+                columns={colunasReceita}
+                noRenderFooter 
+              />
+            </section>
+          )}
         </div>
       </div>
 
