@@ -110,6 +110,7 @@ export default function ProdutosPage() {
           { label: "Gestão de Produtos" },
         ]}
       />
+      
       <div className="flex flex-col gap-6 py-8 overflow-hidden">
         <h1 className="text-h1 text-(--txt-primary)">Gestão de Produtos</h1>
         <div className="flex flex-1 flex-col gap-4 overflow-hidden">

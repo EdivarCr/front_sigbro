@@ -20,14 +20,16 @@ import CadastrarProdutoPage from "@/pages/Produtos/cadastrar"
 import EditarProdutoPage from "@/pages/Produtos/editar"
 import VisualizarProdutoPage from "@/pages/Produtos/detalhes"
 
-import VendasPage from "@/pages/Vendas"
-import PDVsPage from "@/pages/PDVs"
+import InsumosPage from "@/pages/Insumos"
+import InsumoDetalhesPage from "@/pages/Insumos/detalhes"
 
-// Módulo de Estoque (Estrutura Simplificada)
 import EstoquePage from "@/pages/Estoque"
 import CadastrarEstoquePage from "@/pages/Estoque/Cadastrar"
 import DetalhesEstoquePage from "@/pages/Estoque/Detalhes"
 import EditarEstoquePage from "@/pages/Estoque/Editar"
+
+import VendasPage from "@/pages/Vendas"
+import PDVsPage from "@/pages/PDVs"
 
 export const router = createBrowserRouter([
   // Rotas públicas
@@ -83,7 +85,11 @@ export const router = createBrowserRouter([
               { path: "editar/:id", element: <EditarProdutoPage /> },
             ],
           },
-          
+          { path: "/insumos", 
+            children: [
+              { index: true, element: <InsumosPage/> },
+              { path: ":id", element: <InsumoDetalhesPage/> }, 
+            ]},
           { path: "/vendas", element: <VendasPage /> },
           { path: "/pdvs", element: <PDVsPage /> },
         ],
