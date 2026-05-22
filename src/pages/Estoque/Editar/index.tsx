@@ -5,6 +5,8 @@ import { PackageIcon } from "@phosphor-icons/react"
 import { useState, useEffect } from "react"
 import { ProducaoForm } from "@/components/forms/ProducaoForm"
 import type { ProducaoEditData } from "@/schemas/producao.schema"
+import { atualizarEstoque, listarEstoque } from "@/services/api/estoque.service"
+import { buscarProduto } from "@/services/api/produtos.service"
 
 export default function EditarLotePage() {
   const { id } = useParams()
@@ -19,18 +21,20 @@ export default function EditarLotePage() {
       if (!id) return
       try {
         setLoading(true)
-        await new Promise((resolve) => setTimeout(resolve, 600))
+        const resp = await listarEstoque({ limit: 200, offset: 0 })
+        const lote = resp.producao.find((p: any) => String(p.id) === String(id))
+        if (!lote) throw new Error('Lote não encontrado')
 
-        // TODO: Buscar da API quando integrar
-        const dadosMock = {
-          codigo_lote: "LOTE-2605-001",
-          produto_nome: "Molho Carolina Reaper",
-          quantidade: 50,
-          status: "ATIVO" as const,
+        let produtoNome = `Produto ${lote.produto_id}`
+        try {
+          const prod = await buscarProduto(lote.produto_id)
+          produtoNome = prod.nome
+        } catch {
+          // fallback
         }
 
-        setLoteInfo({ codigo: dadosMock.codigo_lote, produto: dadosMock.produto_nome })
-        setDefaultValues({ quantidade: dadosMock.quantidade, status: dadosMock.status })
+        setLoteInfo({ codigo: lote.codigo_lote, produto: produtoNome })
+        setDefaultValues({ quantidade: lote.quantidade, status: lote.status })
       } catch {
         toast({
           title: "Erro ao carregar",
@@ -46,13 +50,34 @@ export default function EditarLotePage() {
   }, [id, navigate, toast])
 
   const onSubmit = async (data: ProducaoEditData) => {
+    if (!id) {
+      toast({
+        title: "Lote inválido",
+        description: "Não foi possível identificar o lote para atualização.",
+        variant: "danger",
+      })
+      return
+    }
+
+    const loteId = Number(id)
+    if (Number.isNaN(loteId)) {
+      toast({
+        title: "Lote inválido",
+        description: "O identificador informado é inválido.",
+        variant: "danger",
+      })
+      return
+    }
+
     try {
-      console.log("Dados enviados para edição:", data)
-      await new Promise((resolve) => setTimeout(resolve, 800))
+      await atualizarEstoque(loteId, {
+        quantidade: data.quantidade,
+        status: data.status,
+      })
 
       toast({
-        title: "Lote atualizado!",
-        description: "As informações foram salvas com sucesso.",
+        title: "Lote atualizado",
+        description: "As alterações do lote foram salvas com sucesso.",
         variant: "success",
       })
 

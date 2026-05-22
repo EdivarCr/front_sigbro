@@ -40,6 +40,8 @@ type ProducaoFormProps = ProducaoFormCreateProps | ProducaoFormEditProps
 function ProducaoCreateForm({ onSubmit, produtos }: ProducaoFormCreateProps) {
   const navigate = useNavigate()
 
+  const today = new Date().toISOString().split('T')[0]
+
   const {
     register,
     handleSubmit,
@@ -53,35 +55,46 @@ function ProducaoCreateForm({ onSubmit, produtos }: ProducaoFormCreateProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col gap-6">
       <div className="flex w-full flex-col gap-4 rounded-sm border border-(--bg-sidebar) bg-(--bg-primary) p-6 shadow-sm">
-        <div className="flex w-full flex-col gap-1">
-          <Controller
-            name="produto_id"
-            control={control}
-            render={({ field }) => (
-              <SelectField
-                label="Produto"
-                placeholder="Selecione o produto fabricado"
-                options={produtos}
-                value={field.value ? String(field.value) : ""}
-                onValueChange={field.onChange}
-              />
-            )}
-          />
-          {errors.produto_id && (
-            <span className="text-xs text-(--color-red)">{errors.produto_id.message}</span>
-          )}
-        </div>
+  <div className="flex w-full flex-col gap-1">
+    <Controller
+      name="produto_id"
+      control={control}
+      render={({ field }) => (
+        <SelectField
+          label="Produto"
+          placeholder="Selecione o produto fabricado"
+          options={produtos}
+          value={field.value ? String(field.value) : ""}
+          onValueChange={field.onChange}
+        />
+      )}
+    />
+    {errors.produto_id && (
+      <span className="text-xs text-(--color-red)">{errors.produto_id.message}</span>
+    )}
+  </div>
 
-        <div className="flex w-full flex-col gap-1">
-          <Input
-            label="Quantidade (Unidades)"
-            type="number"
-            placeholder="Ex: 50"
-            error={errors.quantidade?.message}
-            {...register("quantidade")}
-          />
-        </div>
-      </div>
+  <div className="flex w-full flex-col gap-1">
+    <Input
+      label="Quantidade (Unidades)"
+      type="number"
+      placeholder="Ex: 50"
+      error={errors.quantidade?.message}
+      {...register("quantidade")}
+    />
+  </div>
+
+  {/* ← campo novo */}
+  <div className="flex w-full flex-col gap-1">
+    <Input
+      label="Data de Validade"
+      type="date"
+      error={errors.validade?.message}
+      {...register("validade")}
+      min={today}
+    />
+  </div>
+</div>
 
       <div className="flex gap-4">
         <Button

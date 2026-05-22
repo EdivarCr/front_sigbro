@@ -9,6 +9,7 @@ export const producaoCreateSchema = z.object({
     (val) => Number(val),
     z.number().int("Não pode ser fracionado.").min(1, "A quantidade deve ser maior que zero.")
   ),
+  validade: z.string().min(1, "Informe a data de validade."), // ← adicionar
 })
 
 export const producaoEditSchema = z.object({
