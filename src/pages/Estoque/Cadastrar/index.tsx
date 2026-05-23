@@ -4,38 +4,67 @@ import { useNavigate } from "react-router-dom"
 import { PackageIcon } from "@phosphor-icons/react"
 import { ProducaoForm } from "@/components/forms/ProducaoForm"
 import type { ProducaoCreateData } from "@/schemas/producao.schema"
-
-// TODO: Buscar da API quando integrar
-const MOCK_PRODUTOS = [
-  { label: "Molho de Pimenta Carolina Reaper 150ml", value: "1" },
-  { label: "Geleia de Pimenta Defumada 200g", value: "2" },
-  { label: "Molho de Alho Picante 150ml", value: "3" },
-]
+import { criarEstoque } from "@/services/api/estoque.service"
+import { listarProdutos } from "@/services/api/produtos.service"
+import { useEffect, useState } from "react"
 
 export default function CadastrarLotePage() {
   const { toast } = useToast()
   const navigate = useNavigate()
+  const [produtos, setProdutos] = useState<{ label: string; value: string }[]>([])
+
+  useEffect(() => {
+    async function loadProdutos() {
+      try {
+        const resp = await listarProdutos({ limit: 100, offset: 0 })
+        setProdutos(resp.products.map((p) => ({ label: p.nome, value: String(p.id) })))
+      } catch (err) {
+        setProdutos([])
+      }
+    }
+    loadProdutos()
+  }, [])
+  
 
   const onSubmit = async (data: ProducaoCreateData) => {
-    try {
-      console.log(data)
-      await new Promise((resolve) => setTimeout(resolve, 800))
+  try {
+    await criarEstoque({
+      produto_id: data.produto_id,
+      quantidade: data.quantidade,
+      validade: data.validade,
+    })
+    toast({
+      title: "Sucesso!",
+      description: "Lote de produção registrado com sucesso.",
+      variant: "success",
+    })
+    navigate("/estoque")
+  } catch (error: any) {
+    const detalhe: string = error?.response?.data?.detail ?? ""
 
-      toast({
-        title: "Sucesso!",
-        description: "Lote de produção registrado com sucesso.",
-        variant: "success",
-      })
+    let titulo = "Erro ao registrar"
+    let descricao = "Não foi possível salvar o lote. Tente novamente."
 
-      navigate("/estoque")
-    } catch {
-      toast({
-        title: "Erro ao registrar",
-        description: "Não foi possível salvar o lote. Tente novamente.",
-        variant: "danger",
-      })
+    if (detalhe.includes("Estoque insuficiente")) {
+      // Extrai "Necessário: X, Disponível: Y" da mensagem do backend
+      const match = detalhe.match(/insumo ID (\d+).*Necessário: ([\d.]+).*Disponível: ([\d.]+)/s)
+      titulo = "Estoque de insumos insuficiente"
+      descricao = match
+        ? `Insumo ID ${match[1]}: necessário ${match[2]} unidades, disponível apenas ${match[3]}. Registre uma entrada de insumo antes de produzir.`
+        : "Há insumos com estoque insuficiente para esta produção. Registre entradas de insumo antes de continuar."
+    } else if (detalhe.includes("Insumo ID") && detalhe.includes("não cadastrado")) {
+      titulo = "Insumo não cadastrado"
+      descricao = "A fórmula deste produto contém um insumo que não está cadastrado no sistema. Verifique o cadastro de insumos."
+    } else if (detalhe.includes("Produto não encontrado")) {
+      titulo = "Produto não encontrado"
+      descricao = "O produto selecionado não foi encontrado. Tente recarregar a página."
+    } else if (detalhe) {
+      descricao = detalhe
     }
+
+    toast({ title: titulo, description: descricao, variant: "danger" })
   }
+}
 
   return (
     <div className="flex h-full w-full flex-col">
@@ -64,7 +93,7 @@ export default function CadastrarLotePage() {
           <ProducaoForm
             mode="create"
             onSubmit={onSubmit}
-            produtos={MOCK_PRODUTOS}
+            produtos={produtos}
           />
         </div>
       </div>

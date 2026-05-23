@@ -12,6 +12,7 @@ import {
 } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 import { Modal } from "@/components/ui/modal"
+import { cancelarEstoque, atualizarEstoque } from "@/services/api/estoque.service"
 
 // TODO: Importar isso de um arquivo de serviço quando integrar com a API
 interface LoteDetalhe {
@@ -38,22 +39,23 @@ export default function DetalhesLotePage() {
   const [isRemoving, setIsRemoving] = useState(false)
   
   const onRemover = async () => {
+    if (!lote) return
+
     setIsRemoving(true)
     try {
-      // Simulação da API
-      await new Promise(resolve => setTimeout(resolve, 800))
+      await cancelarEstoque(lote.id)
 
       toast({
-        title: "Lote Cancelado",
-        description: "O status do lote foi alterado para cancelado.",
+        title: "Lote cancelado",
+        description: "O lote foi cancelado com sucesso.",
         variant: "success",
       })
 
-      setLote(prev => prev ? { ...prev, status: "CANCELADO" } : null)
       setRemoveModalOpen(false)
-    } catch (error) {
+      navigate("/estoque")
+    } catch {
       toast({
-        title: "Erro ao cancelar",
+        title: "Erro ao remover",
         description: "Ocorreu um erro ao tentar cancelar o lote.",
         variant: "danger",
       })
@@ -67,21 +69,44 @@ export default function DetalhesLotePage() {
       if (!id) return
       try {
         setLoading(true)
-        // Simulação da API
-        await new Promise(resolve => setTimeout(resolve, 500))
-        
-        // Mock de dados
+        // Busca a lista e procura pelo lote (backend não tem GET /producao/{id})
+        const resp = await import("@/services/api/estoque.service").then(m => m.listarEstoque({ limit: 200, offset: 0 }))
+        const loteEncontrado = resp.producao.find((p: any) => String(p.id) === String(id))
+        if (!loteEncontrado) {
+          throw new Error('Lote não encontrado')
+        }
+
+        // tenta resolver nome do produto
+        let produtoNome = `Produto ${loteEncontrado.produto_id}`
+        try {
+          const prod = await import("@/services/api/produtos.service").then(m => m.buscarProduto(loteEncontrado.produto_id))
+          produtoNome = prod.nome
+        } catch {
+          // fallback
+        }
+
         setLote({
-          id: Number(id),
-          codigo_lote: "LOTE-2605-001",
-          produto_nome: "Molho Carolina Reaper",
-          quantidade: 50,
-          fabricacao: "2026-05-20T10:00:00",
-          validade: "2026-12-31",
-          custo_total: 250.00,
-          custo_unitario: 5.00,
-          status: "ATIVO"
+          id: loteEncontrado.id,
+          codigo_lote: loteEncontrado.codigo_lote,
+          produto_nome: produtoNome,
+          quantidade: loteEncontrado.quantidade,
+          fabricacao: loteEncontrado.fabricacao,
+          validade: loteEncontrado.validade,
+          custo_total: Number(loteEncontrado.custo_total || 0),
+          custo_unitario: Number(loteEncontrado.custo_unitario || 0),
+          status: loteEncontrado.status,
         })
+        // Se já estiver expirado, atualiza status no backend e na UI
+        try {
+          const validadeTime = new Date(loteEncontrado.validade).getTime()
+          if (validadeTime < Date.now() && loteEncontrado.status !== 'VENCIDO') {
+            await atualizarEstoque(loteEncontrado.id, { status: 'VENCIDO' })
+            setLote(prev => prev ? { ...prev, status: 'VENCIDO' } : prev)
+            toast({ title: 'Lote vencido', description: 'O status foi atualizado para Vencido.', variant: 'attention' })
+          }
+        } catch {
+          // falha ao atualizar não bloqueia a visualização
+        }
       } catch (error) {
         toast({
           title: "Erro ao carregar",

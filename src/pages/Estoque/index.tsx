@@ -17,20 +17,21 @@ import {
 import { useState, useEffect, useCallback } from "react"
 import { useToast } from "@/context/ToastContext"
 import { useNavigate } from "react-router-dom"
+import { cancelarEstoque, listarEstoque } from "@/services/api/estoque.service"
+import { buscarProduto } from "@/services/api/produtos.service"
 
 export interface LoteListItem {
   id: number;
   codigo_lote: string;
   produto_nome: string;
+  produto_id: number;
   quantidade: number;
+  estoque_minimo?: number;
   validade: string;
   status: "ATIVO" | "ESGOTADO" | "VENCIDO" | "CANCELADO";
 }
 
-const MOCK_LOTES: LoteListItem[] = [
-  { id: 1, codigo_lote: "LOTE-2605-001", produto_nome: "Molho Carolina Reaper", quantidade: 50, validade: "2026-12-31", status: "ATIVO" },
-  { id: 2, codigo_lote: "LOTE-2605-002", produto_nome: "Geleia de Pimenta", quantidade: 0, validade: "2026-10-15", status: "ESGOTADO" },
-]
+// initial empty list; will be loaded from API
 
 export default function EstoquePage() {
   const { toast } = useToast()
@@ -40,9 +41,25 @@ export default function EstoquePage() {
   const [lotes, setLotes] = useState<LoteListItem[]>([])
   const [loading, setLoading] = useState(true)
 
-const totalItens = lotes.reduce((acc, l) => acc + l.quantidade, 0)
-const estoqueCritico = lotes.filter(l => l.quantidade === 0).length
-const validadeProxima = lotes.filter(l => {
+const lotesAtivos = lotes.filter((l) => l.status !== "CANCELADO")
+const totalItens = lotesAtivos.reduce((acc, l) => acc + l.quantidade, 0)
+
+// Agrupa por produto para contar produtos únicos e detectar estoque crítico por produto
+const produtoMap = new Map<number, { total: number; estoque_minimo?: number }>()
+for (const l of lotesAtivos) {
+  const pid = l.produto_id
+  const prev = produtoMap.get(pid) ?? { total: 0, estoque_minimo: l.estoque_minimo }
+  prev.total += l.quantidade
+  if (prev.estoque_minimo === undefined && l.estoque_minimo !== undefined) prev.estoque_minimo = l.estoque_minimo
+  produtoMap.set(pid, prev)
+}
+
+const produtosUnicos = produtoMap.size
+
+// Considera produto em crítico se houver estoque_minimo definido e total <= estoque_minimo
+const estoqueCritico = Array.from(produtoMap.values()).filter(p => typeof p.estoque_minimo === 'number' && p.total <= (p.estoque_minimo ?? 0)).length
+
+const validadeProxima = lotesAtivos.filter((l) => {
   const diff = new Date(l.validade).getTime() - new Date().getTime()
   return diff > 0 && diff < 1000 * 60 * 60 * 24 * 90
 }).length
@@ -55,15 +72,55 @@ const validadeProxima = lotes.filter(l => {
   const fetchLotes = useCallback(async () => {
     setLoading(true)
     try {
-      await new Promise(resolve => setTimeout(resolve, 600))
-      
-      let filtrados = [...MOCK_LOTES]
-      
+      const resp = await listarEstoque({ limit: 100, offset: 0 })
+      const producao = resp.producao || []
+
+      // Resolve produto_nome e estoque_minimo para cada lote (backend returns produto_id)
+      const lotesComNome = await Promise.all(
+        producao.map(async (p) => {
+          let nome = `Produto ${p.produto_id}`
+          let estoqueMinimo: number | undefined = undefined
+          try {
+            const prod = await buscarProduto(p.produto_id)
+            nome = prod.nome
+            estoqueMinimo = prod.estoque_minimo ?? undefined
+          } catch {
+            /* fallback name kept */
+          }
+
+          return {
+            id: p.id,
+            codigo_lote: p.codigo_lote,
+            produto_id: p.produto_id,
+            produto_nome: nome,
+            estoque_minimo: estoqueMinimo,
+            quantidade: p.quantidade,
+            validade: p.validade,
+            status: p.status,
+          } as LoteListItem
+        })
+      )
+
+      // Marca localmente e no backend lotes já vencidos
+      const now = Date.now()
+      const expirados = lotesComNome.filter(l => {
+        const validadeTime = new Date(l.validade).getTime()
+        return validadeTime < now && l.status !== 'VENCIDO'
+      })
+
+      if (expirados.length > 0) {
+        // Atualiza backend em background; não bloquear UI
+        Promise.allSettled(expirados.map(e => import('@/services/api/estoque.service').then(m => m.atualizarEstoque(e.id, { status: 'VENCIDO' })).catch(() => null)))
+        // Atualiza estado local para refletir mudança imediatamente
+        for (const e of expirados) e.status = 'VENCIDO'
+      }
+
+      let filtrados = lotesComNome
       if (search.trim().length >= 3) {
-        filtrados = filtrados.filter(l => l.codigo_lote.toLowerCase().includes(search.toLowerCase()))
+        filtrados = filtrados.filter((l) => l.codigo_lote.toLowerCase().includes(search.toLowerCase()))
       }
       if (statusFiltro) {
-        filtrados = filtrados.filter(l => l.status === statusFiltro)
+        filtrados = filtrados.filter((l) => l.status === statusFiltro)
       }
 
       setLotes(filtrados)
@@ -92,7 +149,7 @@ const validadeProxima = lotes.filter(l => {
 
     setIsRemoving(true)
     try {
-      await new Promise(resolve => setTimeout(resolve, 800))
+      await cancelarEstoque(idParaRemover)
 
       toast({
         title: "Lote removido",
@@ -132,10 +189,10 @@ const validadeProxima = lotes.filter(l => {
       <div className="flex flex-col gap-6 py-8">
         <h1 className="text-h1 text-(--txt-primary)">Lotes de Produção</h1>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-  <div className="flex flex-col gap-1 rounded-sm border border-(--bg-sidebar) bg-(--bg-primary) p-5 shadow-sm">
+    <div className="flex flex-col gap-1 rounded-sm border border-(--bg-sidebar) bg-(--bg-primary) p-5 shadow-sm">
     <span className="text-body-sm text-(--txt-secondary)">Itens em Estoque</span>
     <span className="text-h2 font-bold text-(--txt-primary)">{totalItens} itens</span>
-    <span className="text-label text-(--txt-secondary)">De {lotes.length} produtos</span>
+    <span className="text-label text-(--txt-secondary)">De {produtosUnicos} produtos</span>
   </div>
   <div className="flex flex-col gap-1 rounded-sm border border-(--bg-sidebar) bg-(--bg-primary) p-5 shadow-sm">
     <span className="text-body-sm text-(--txt-secondary)">Produtos em Estoque Crítico</span>
