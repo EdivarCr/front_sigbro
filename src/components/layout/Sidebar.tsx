@@ -92,6 +92,12 @@ function SidebarContent({
   const navigate = useNavigate()
   const [logOutModalOpen, setLogoutModalOpen] = useState(false)
 
+  const { user } = useAuth()
+  const nome = user?.user_metadata?.full_name
+    ?? user?.user_metadata?.name
+    ?? user?.email
+    ?? "-"
+
   return (
     <div className="flex flex-1 flex-col gap-8 overflow-y-auto px-6 pt-6">
       <div className="flex items-center justify-between">
@@ -125,12 +131,12 @@ function SidebarContent({
           }
         >
           <UserIcon size={24} />
-          <div className="flex flex-col">
-            <span className="text-body-md text-(--txt-primary)">
-              User Profile
+          <div className="flex flex-col w-full min-w-0">
+            <span className="text-body-md text-(--txt-primary) block truncate">
+              {nome}
             </span>
-            <span className="text-label text-(--txt-secondary)">
-              johndoe@email.com
+            <span className="text-label text-(--txt-secondary) block truncate">
+              {user?.email ?? "-"}
             </span>
           </div>
         </NavLink>
