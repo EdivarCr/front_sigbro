@@ -24,7 +24,7 @@ export default function ResetPasswordPage() {
     formState: { errors, isSubmitting, isValid },
   } = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
-    mode: "onBlur",
+    mode: "onChange",
   })
 
   useEffect(() => {
@@ -59,7 +59,7 @@ export default function ResetPasswordPage() {
         variant: "success",
       })
 
-      await supabase.auth.signOut()
+      await supabase.auth.signOut({ scope: 'local' })
       navigate("/login")
     } catch (error: any) {
       toast({

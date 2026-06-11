@@ -2,6 +2,7 @@ import { z } from "zod"
 
 const letraRegex = /[a-zA-Z]/
 const numeroRegex = /\d/
+const especialRegex = /[@#\$%\^&\*\.]/
 
 export const loginSchema = z.object({
   email: z
@@ -13,7 +14,8 @@ export const loginSchema = z.object({
     .min(1, "Senha obrigatória")
     .min(8, "Mínimo 8 caracteres")
     .regex(letraRegex, "A senha deve conter pelo menos uma letra")
-    .regex(numeroRegex, "A senha deve conter pelo menos um número"),
+    .regex(numeroRegex, "A senha deve conter pelo menos um número")
+    .regex(especialRegex, "A senha deve conter pelo menos um caractere especial (@, #, $, %, ^, &, * ou .)"),
 })
 
 export type LoginFormData = z.infer<typeof loginSchema>
@@ -34,7 +36,8 @@ export const resetPasswordSchema = z.object({
     .string()
     .min(8, "A nova senha deve ter no mínimo 8 caracteres")
     .regex(letraRegex, "A senha deve conter pelo menos uma letra")
-    .regex(numeroRegex, "A senha deve conter pelo menos um número"),
+    .regex(numeroRegex, "A senha deve conter pelo menos um número")
+    .regex(especialRegex, "A senha deve conter pelo menos um caractere especial (@, #, $, %, ^, &, * ou .)"),
   confirm_password: z
     .string()
     .min(1, "Confirmação obrigatória")

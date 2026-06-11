@@ -27,12 +27,12 @@ export default function LoginPage() {
 
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-    mode: "onBlur",
+    mode: "onChange",
   })
 
   const forgotForm = useForm<ForgotFormData>({
     resolver: zodResolver(forgotSchema),
-    mode: "onBlur",
+    mode: "onChange",
   })
 
   const onLogin = async (data: LoginFormData) => {

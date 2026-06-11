@@ -28,8 +28,17 @@ import CadastrarEstoquePage from "@/pages/Estoque/Cadastrar"
 import DetalhesEstoquePage from "@/pages/Estoque/Detalhes"
 import EditarEstoquePage from "@/pages/Estoque/Editar"
 
-import VendasPage from "@/pages/Vendas"
+import ClientesPage from "@/pages/Clientes"
+import CadastrarClientePage from "@/pages/Clientes/Cadastrar"
+import DetalhesClientePage from "@/pages/Clientes/Detalhes"
+import EditarClientePage from "@/pages/Clientes/Editar"
+
 import PDVsPage from "@/pages/PDVs"
+import CadastrarPDVPage from "@/pages/PDVs/Cadastrar"
+import DetalhesPDVPage from "@/pages/PDVs/Detalhes"
+import EditarPDVPage from "@/pages/PDVs/Editar"
+
+import VendasPage from "@/pages/Vendas"
 
 export const router = createBrowserRouter([
   // Rotas públicas
@@ -50,22 +59,6 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // ROTA TEMPORÁRIA (Acesso livre para testes)
-  {
-    element: <MainLayout />,
-    children: [
-      {
-        path: "/estoque",
-        children: [
-          { index: true, element: <EstoquePage /> },
-          { path: "cadastrar", element: <CadastrarEstoquePage /> },
-          { path: ":id", element: <DetalhesEstoquePage /> },
-          { path: "editar/:id", element: <EditarEstoquePage /> },
-        ],
-      },
-    ],
-  },
-
   // Rotas protegidas (Originais)
   {
     element: <ProtectedRoute />,
@@ -75,7 +68,6 @@ export const router = createBrowserRouter([
         children: [
           { path: "/", element: <DashboardPage /> },
           { path: "/perfil", element: <PerfilPage /> },
-          
           {
             path: "/produtos",
             children: [
@@ -90,8 +82,34 @@ export const router = createBrowserRouter([
               { index: true, element: <InsumosPage/> },
               { path: ":id", element: <InsumoDetalhesPage/> }, 
             ]},
+          { 
+            path: "/estoque",
+            children: [
+              { index: true, element: <EstoquePage /> },
+              { path: "cadastrar", element: <CadastrarEstoquePage /> },
+              { path: ":id", element: <DetalhesEstoquePage /> },
+              { path: "editar/:id", element: <EditarEstoquePage /> },
+            ],
+          },
+          { 
+            path: "/clientes",
+            children: [
+              { index: true, element: <ClientesPage /> },
+              { path: "cadastrar", element: <CadastrarClientePage /> },
+              { path: ":id", element: <DetalhesClientePage /> },
+              { path: "editar/:id", element: <EditarClientePage /> },
+            ],
+          },
+          { 
+            path: "/pdvs",
+            children: [
+              { index: true, element: <PDVsPage /> },
+              { path: "cadastrar", element: <CadastrarPDVPage /> },
+              { path: ":id", element: <DetalhesPDVPage /> },
+              { path: "editar/:id", element: <EditarPDVPage /> },
+            ],
+          },
           { path: "/vendas", element: <VendasPage /> },
-          { path: "/pdvs", element: <PDVsPage /> },
         ],
       },
     ],
