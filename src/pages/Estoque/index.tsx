@@ -122,6 +122,9 @@ const validadeProxima = lotesAtivos.filter((l) => {
       if (statusFiltro) {
         filtrados = filtrados.filter((l) => l.status === statusFiltro)
       }
+      if (!statusFiltro) {
+        filtrados = filtrados.filter((l) => l.status !== "CANCELADO")
+      }
 
       setLotes(filtrados)
     } catch {
@@ -268,7 +271,24 @@ const validadeProxima = lotesAtivos.filter((l) => {
                   columns={[
                     { key: "codigo_lote", label: "Código do Lote", sortable: true },
                     { key: "produto_nome", label: "Produto", sortable: true },
-                    { key: "quantidade", label: "Quantidade", sortable: true },
+                    {
+                      key: "quantidade",
+                      label: "Quantidade",
+                      sortable: true,
+                      render: (row) => {
+                        const critico = typeof row.estoque_minimo === "number" && row.quantidade <= row.estoque_minimo
+                        return (
+                          <span className={`flex items-center gap-1 font-medium ${critico ? "text-(--color-red)" : "text-(--txt-primary)"}`}>
+                            {row.quantidade}
+                            {critico && (
+                              <span className="text-[10px] uppercase font-bold bg-red-100 text-(--color-red) px-1.5 py-0.5 rounded-sm">
+                                Crítico
+                              </span>
+                            )}
+                          </span>
+                        )
+                      }
+                    },
                     { 
                       key: "validade", 
                       label: "Validade", 
