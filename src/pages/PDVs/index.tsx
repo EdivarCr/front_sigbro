@@ -68,8 +68,10 @@ export default function PDVsPage() {
         tipo_zona: zonaFiltro || undefined,
         ativo: ativoQuery
       })
+      
+      const pdvsOrdenados = (data || []).sort((a, b) => a.id - b.id)
 
-      setPdvs(data)
+      setPdvs(pdvsOrdenados)
     } catch (error: any) {
       console.error("Erro detalhado do FastAPI:", error.response?.data)
       toast({
