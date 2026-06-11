@@ -40,8 +40,10 @@ export default function ClientesPage() {
         name: search.trim().length >= 3 ? search.trim() : undefined,
         tipo: tipoFiltro || undefined,
       })
+    
+    const clientesOrdenados = (data.costumers || []).sort((a, b) => a.id - b.id)
 
-      setClientes(data.costumers || [])
+    setClientes(clientesOrdenados)
     } catch (error) {
       console.error("Erro ao listar clientes:", error)
       toast({

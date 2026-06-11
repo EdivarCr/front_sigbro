@@ -76,7 +76,6 @@ export async function criarCliente(data: any) {
 }
 
 export async function atualizarCliente(id: number, data: ClienteUpdate) {
-  // TODO: O back-end ainda precisa implementar o PATCH /clientes/{client_id}
   const response = await apiClient.patch<Cliente>(`/clientes/${id}`, data)
   return response.data
 }
