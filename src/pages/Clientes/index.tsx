@@ -1,4 +1,4 @@
-import { type Cliente } from "@/services/api/cliente.service"
+import { type Cliente, listarClientes, removerCliente } from "@/services/api/cliente.service"
 
 import { useState, useEffect, useCallback } from "react"
 import { useToast } from "@/context/ToastContext"
@@ -21,44 +21,6 @@ import {
   XIcon,
 } from "@phosphor-icons/react"
 
-const mockClientes: Cliente[] = [
-  {
-    id: 1,
-    name: "João da Silva",
-    tipo: "PESSOA_FISICA",
-    identificador: "123.456.789-00",
-    telefone: "(11) 98765-4321",
-    email: "joao@email.com",
-    endereco: "Rua das Flores, 123 - Centro",
-    total_compras: 150.50,
-    quantidade_compras: 3,
-    ultima_compra: "2026-05-20",
-  },
-  {
-    id: 2,
-    name: "Burger & Co.",
-    tipo: "RESTAURANTE",
-    identificador: "12.345.678/0001-90",
-    telefone: "(11) 3456-7890",
-    email: "contato@burgerco.com",
-    endereco: "Av. Paulista, 1000 - Bela Vista",
-    total_compras: 2450.00,
-    quantidade_compras: 15,
-    ultima_compra: "2026-06-01",
-  },
-  {
-    id: 3,
-    name: "Mercadinho do Bairro",
-    tipo: "COMERCIO",
-    identificador: "98.765.432/0001-10",
-    telefone: "(11) 2345-6789",
-    email: "compras@mercadinho.com",
-    endereco: "Rua do Comércio, 45 - Vila Nova",
-    total_compras: 850.75,
-    quantidade_compras: 5,
-    ultima_compra: "2026-05-15",
-  }
-]
 export default function ClientesPage() {
   const { toast } = useToast()
   const navigate = useNavigate()
@@ -74,23 +36,14 @@ export default function ClientesPage() {
   const fetchClientes = useCallback(async () => {
     setLoading(true)
     try {
-      // Busca simulada
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      const data = await listarClientes({
+        name: search.trim().length >= 3 ? search.trim() : undefined,
+        tipo: tipoFiltro || undefined,
+      })
 
-      let resultados = [...mockClientes]
-
-      if (search.trim().length >= 3) {
-        resultados = resultados.filter(c => 
-          c.name.toLowerCase().includes(search.trim().toLowerCase())
-        )
-      }
-
-      if (tipoFiltro) {
-        resultados = resultados.filter(c => c.tipo === tipoFiltro)
-      }
-
-      setClientes(resultados)
-    } catch {
+      setClientes(data.costumers || [])
+    } catch (error) {
+      console.error("Erro ao listar clientes:", error)
       toast({
         title: "Erro ao carregar clientes",
         description: "Não foi possível buscar os clientes. Tente novamente.",
@@ -110,13 +63,13 @@ export default function ClientesPage() {
   const [idParaRemover, setIdParaRemover] = useState<number | null>(null)
   const [isRemoving, setIsRemoving] = useState(false)
   
+  // TODO: Esperar definição do back sobre haver remoção de cliente 
   const onRemover = async () => {
     if (!idParaRemover) return
 
     setIsRemoving(true)
     try {
-      // Exclusão simulada
-      await new Promise((resolve) => setTimeout(resolve, 600))
+      await removerCliente(idParaRemover)
 
       toast({
         title: "Cliente removido",
@@ -127,6 +80,7 @@ export default function ClientesPage() {
       setRemoveModalOpen(false)
       fetchClientes()
     } catch (error) {
+      console.error("Erro ao remover cliente:", error)
       toast({
         title: "Erro ao remover",
         description: "Ocorreu um erro ao tentar excluir o cliente.",

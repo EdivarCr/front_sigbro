@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Table } from "@/components/ui/table"
 import { MobileTable } from "@/components/ui/mobile-table"
+import { useToast } from "@/context/ToastContext"
 import { 
   PencilSimpleIcon, 
   MapPinIcon, 
@@ -17,74 +18,45 @@ import {
   EyeIcon,
   PlusIcon
 } from "@phosphor-icons/react"
-import { type Cliente } from "@/services/api/cliente.service"
-import { type PontoDeVenda } from "@/services/api/pdv.service"
+import { type Cliente, obterClientePorId } from "@/services/api/cliente.service"
+import { type PontoDeVenda, listarPDVs } from "@/services/api/pdv.service"
 
 export default function DetalhesClientePage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  
+  const { toast } = useToast()
+
   const [cliente, setCliente] = useState<Cliente | null>(null)
   const [pdvs, setPdvs] = useState<PontoDeVenda[]>([])
   const [loading, setLoading] = useState(true)
 
-  // SIMULAÇÃO: Carregando dados do Cliente e seus PDVs
   useEffect(() => {
-    const carregarDadosMock = () => {
-      setTimeout(() => {
-        setCliente({
-          id: Number(id),
-          name: "Burger & Co.",
-          tipo: "RESTAURANTE",
-          identificador: "12.345.678/0001-90",
-          telefone: "(11) 3456-7890",
-          email: "contato@burgerco.com",
-          endereco: "Av. Paulista, 1000 - Bela Vista, São Paulo - SP",
-          total_compras: 2450.00,
-          quantidade_compras: 15,
-          ultima_compra: "2026-06-01"
-        })
+    const carregarDados = async () => {
+      if (!id) return
+      try {
+        setLoading(true)
 
-        setPdvs([
-          {
-            id: 101,
-            id_cliente: Number(id),
-            name: "Unidade Paulista (Matriz)",
-            tipo_zona: "ZONA_SUL",
-            endereco: "Av. Paulista, 1000",
-            telefone: "(11) 3456-7891",
-            instagram: "@burgerco_paulista",
-            google_maps_url: null,
-            latitude: null,
-            longitude: null,
-            ultima_reposicao: "2026-05-28",
-            ativo: true,
-            criado_em: "2026-01-10",
-            atualizado_em: "2026-01-10"
-          },
-          {
-            id: 102,
-            id_cliente: Number(id),
-            name: "Unidade Faria Lima",
-            tipo_zona: "ZONA_OESTE",
-            endereco: "Av. Brigadeiro Faria Lima, 200",
-            telefone: "(11) 3456-7892",
-            instagram: "@burgerco_farialima",
-            google_maps_url: null,
-            latitude: null,
-            longitude: null,
-            ultima_reposicao: "2026-06-02",
-            ativo: true,
-            criado_em: "2026-02-15",
-            atualizado_em: "2026-05-10"
-          }
+        const [clienteDados, pdvsDados] = await Promise.all([
+          obterClientePorId(Number(id)),
+          listarPDVs({ id_cliente: Number(id) })
         ])
 
+        setCliente(clienteDados)
+        setPdvs(pdvsDados)
+      } catch (error) {
+        console.error("Erro ao buscar dados do cliente e seus PDVs:", error)
+        toast({
+          title: "Erro ao carregar informações",
+          description: "Não foi possível carregar os dados deste cliente ou de seus PDVs.",
+          variant: "danger",
+        })
+        navigate("/clientes")
+      } finally {
         setLoading(false)
-      }, 600) // Simula tempo de rede
+      }
     }
 
-    carregarDadosMock()
+    carregarDados()
   }, [id])
 
   if (loading) {
@@ -118,7 +90,7 @@ export default function DetalhesClientePage() {
     "ZONA_LESTE": "Zona Leste",
     "ZONA_OESTE": "Zona Oeste",
   }
-
+  
   return (
     <div className="flex h-full flex-col min-h-0">
       <Breadcrumb
@@ -249,9 +221,9 @@ export default function DetalhesClientePage() {
                   )
                 },
                 { key: "endereco", label: "Endereço" },
-                { key: "telefone", label: "Telefone", render: (row) => row.telefone || "-" },
+                { key: "id", label: "Telefone", render: (row) => row.telefone || "-" },
                 { 
-                  key: "ultima_reposicao", 
+                  key: "criado_em", 
                   label: "Última Reposição",
                   render: (row) => row.ultima_reposicao ? new Date(row.ultima_reposicao).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : "Sem registros"
                 },

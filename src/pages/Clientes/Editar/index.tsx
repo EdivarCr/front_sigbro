@@ -6,32 +6,45 @@ import { type ClienteFormData } from "@/schemas/cliente.schema"
 import { ClienteForm } from "@/components/forms/ClienteForm"
 import { Button } from "@/components/ui/button"
 
+import { obterClientePorId, atualizarCliente } from "@/services/api/cliente.service"
+
 export default function EditarClientePage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { toast } = useToast()
   
-  const [clienteMock, setClienteMock] = useState<Partial<ClienteFormData> | null>(null)
+  const [clienteData, setClienteData] = useState<Partial<ClienteFormData> | null>(null)
   const [loading, setLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
-    const carregarDadosMock = () => {
-      setTimeout(() => {
-        setClienteMock({
-          name: "Mock Cliente para Edição",
-          tipo: "RESTAURANTE",
-          identificador: "12.345.678/0001-90",
-          telefone: "(11) 3456-7890",
-          email: "contato@mock.com",
-          endereco: "Av. Mockada, 1000",
+    const carregarDados = async () => {
+      if (!id) return
+
+      try {
+        const dados = await obterClientePorId(Number(id))
+        setClienteData({
+          name: dados.name,
+          tipo: dados.tipo,
+          identificador: dados.identificador,
+          telefone: dados.telefone,
+          endereco: dados.endereco,
+          email: dados.email ?? "",
         })
+      } catch (error) {
+        console.error("Erro ao buscar dados do cliente:", error)
+        toast({
+          title: "Erro ao carregar",
+          description: "Não foi possível encontrar os dados deste cliente.",
+          variant: "danger",
+        })
+      } finally {
         setLoading(false)
-      }, 500)
+      }
     }
 
-    carregarDadosMock()
-  }, [id])
+    carregarDados()
+  }, [id, toast])
 
   if (loading) {
     return (
@@ -41,7 +54,7 @@ export default function EditarClientePage() {
     )
   }
 
-  if (!clienteMock) {
+  if (!clienteData) {
     return (
       <div className="flex flex-col items-center py-20">
         <h2 className="text-h2 text-(--txt-primary)">Cliente não encontrado.</h2>
@@ -53,10 +66,10 @@ export default function EditarClientePage() {
   }
 
   const handleEdit = async (data: ClienteFormData) => {
+    if (!id) return
     setIsSubmitting(true)
     try {
-      // Finge que está chamando a API (PATCH /cliente/:id)
-      await new Promise((resolve) => setTimeout(resolve, 800))
+      await atualizarCliente(Number(id), data)
 
       console.log("Edição que seria salva na API:", data)
 
@@ -66,10 +79,11 @@ export default function EditarClientePage() {
         variant: "success",
       })
       navigate("/clientes")
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Erro ao editar cliente:", error)
       toast({
         title: "Erro ao editar",
-        description: "Não foi possível salvar as alterações (simulação).",
+        description: error.response?.data?.detail || "Ocorreu um erro ao tentar salvar as alterações.",
         variant: "danger",
       })
     } finally {
@@ -83,7 +97,7 @@ export default function EditarClientePage() {
         items={[
           { label: "Tela Inicial", to: "/" },
           { label: "Gestão de Clientes", to: "/clientes" },
-          { label: `Editar: ${clienteMock.name}` },
+          { label: `Editar: ${clienteData?.name}` },
         ]}
       />
       <div className="flex flex-1 flex-col gap-6 py-8 overflow-y-auto">
@@ -92,7 +106,7 @@ export default function EditarClientePage() {
           <div className={`flex flex-col w-full max-w-271 rounded-sm bg-(--bg-surface) p-6 shadow-md border border-(--bg-sidebar) ${isSubmitting ? 'opacity-50 pointer-events-none' : ''}`}>
             <ClienteForm 
               onSubmit={handleEdit} 
-              defaultValues={clienteMock} 
+              defaultValues={clienteData} 
               mode="edit" 
             />
           </div>

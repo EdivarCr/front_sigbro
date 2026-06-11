@@ -5,6 +5,8 @@ import { type ClienteFormData } from "@/schemas/cliente.schema"
 import { ClienteForm } from "@/components/forms/ClienteForm"
 import { useState } from "react"
 
+import { criarCliente } from "@/services/api/cliente.service"
+
 export default function CadastrarClientePage() {
   const { toast } = useToast()
   const navigate = useNavigate()
@@ -13,7 +15,7 @@ export default function CadastrarClientePage() {
   const handleCadastro = async (data: ClienteFormData) => {
     setIsSubmitting(true)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800))
+      await criarCliente(data)
       
       console.log("Dados que seriam enviados para API:", data)
 
@@ -24,10 +26,11 @@ export default function CadastrarClientePage() {
       })
       
       navigate("/clientes")
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Erro ao cadastrar cliente:", error)
       toast({
         title: "Erro ao cadastrar",
-        description: "Houve um problema na simulação.",
+        description: error.response?.data?.detail || "Ocorreu um erro ao tentar cadastrar o cliente.",
         variant: "danger",
       })
     } finally {

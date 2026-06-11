@@ -10,8 +10,26 @@ export const clienteSchema = z
       .min(1, "Nome é obrigatório")
       .max(120, "Máximo de 120 caracteres"),
     tipo: TipoClienteEnum,
-    identificador: z.string().min(1, "Identificador é obrigatório (CPF/CNPJ)"),
-    telefone: z.string().min(1, "Telefone é obrigatório"),
+    identificador: z
+    .string()
+    .min(1, "Identificador é obrigatório (CPF/CNPJ)")
+    .refine(
+      (val) => {
+        const apenasNumeros = val.replace(/\D/g, "")
+        return apenasNumeros.length === 11 || apenasNumeros.length === 14
+      },
+      { message: "Deve ser um CPF (11 números) ou CNPJ (14 números) válido" }
+    ),
+    telefone: z
+    .string()
+    .min(1, "Telefone é obrigatório")
+    .refine(
+      (val) => {
+        const apenasNumeros = val.replace(/\D/g, "")
+        return apenasNumeros.length === 10 || apenasNumeros.length === 11
+      },
+      { message: "Telefone inválido. Lembre-se de incluir o DDD" }
+    ),
     email: z
       .string()
       .min(1, "E-mail obrigatório")

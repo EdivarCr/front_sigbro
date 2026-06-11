@@ -34,7 +34,7 @@ export interface ClienteUpdate {
 }
 
 export interface ClienteListResponse {
-  clientes: Cliente[]
+  costumers: Cliente[]
   offset: number
   limit: number
 }
@@ -44,4 +44,53 @@ export interface FilterCliente {
   limit?: number
   name?: string
   tipo?: string
+}
+
+export async function listarClientes(filtros?: FilterCliente) {
+  const isPesquisa = filtros?.name || filtros?.tipo
+  const url = isPesquisa ? "/clientes/pesquisa" : "/clientes/"
+
+  const response = await apiClient.get<ClienteListResponse>(url, {
+    params: filtros
+  })
+  return response.data
+}
+
+export async function obterClientePorId(id: number) {
+  const response = await apiClient.get<Cliente>(`/clientes/${id}`)
+  return response.data
+}
+
+export async function criarCliente(data: any) {
+  const payload: ClienteCreate = {
+    name: data.name,
+    tipo: data.tipo,
+    identificador: data.identificador,
+    telefone: data.telefone,
+    email: data.email,
+    endereco: data.endereco
+  }
+  
+  const response = await apiClient.post<Cliente>("/clientes/", payload)
+  return response.data
+}
+
+export async function atualizarCliente(id: number, data: ClienteUpdate) {
+  // TODO: O back-end ainda precisa implementar o PATCH /clientes/{client_id}
+  const response = await apiClient.patch<Cliente>(`/clientes/${id}`, data)
+  return response.data
+}
+
+export async function removerCliente(id: number) {
+  // TODO: O back-end ainda precisa implementar o DELETE /clientes/{client_id}
+  const response = await apiClient.delete(`/clientes/${id}`)
+  return response.data
+}
+
+export const clienteService = {
+  listarClientes,
+  obterClientePorId,
+  criarCliente,
+  atualizarCliente,
+  removerCliente
 }
