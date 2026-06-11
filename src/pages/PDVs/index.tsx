@@ -17,59 +17,8 @@ import {
 import { useState, useEffect, useCallback } from "react"
 import { useToast } from "@/context/ToastContext"
 import { useNavigate } from "react-router-dom"
-import { type PontoDeVenda } from "@/services/api/pdv.service"
-
-// MOCK DE DADOS PARA TESTE (Enquanto o backend não fica pronto)
-const mockPdvs: PontoDeVenda[] = [
-  {
-    id: 1,
-    id_cliente: 1,
-    name: "Quiosque Praia (Sede)",
-    tipo_zona: "ZONA_SUL",
-    endereco: "Av. Beira Mar, 1000",
-    telefone: "(85) 99999-1111",
-    instagram: "@quiosquepraia",
-    google_maps_url: null,
-    latitude: null,
-    longitude: null,
-    ultima_reposicao: "2026-06-01",
-    ativo: true,
-    criado_em: "2026-01-10T10:00:00Z",
-    atualizado_em: "2026-06-01T10:00:00Z",
-  },
-  {
-    id: 2,
-    id_cliente: 2,
-    name: "Burger & Co. (Shopping)",
-    tipo_zona: "ZONA_OESTE",
-    endereco: "Av. Washington Soares, 85 - Piso L2",
-    telefone: "(85) 3232-0000",
-    instagram: "@burgerco_shop",
-    google_maps_url: null,
-    latitude: null,
-    longitude: null,
-    ultima_reposicao: "2026-05-28",
-    ativo: true,
-    criado_em: "2026-02-15T14:30:00Z",
-    atualizado_em: "2026-05-28T09:15:00Z",
-  },
-  {
-    id: 3,
-    id_cliente: 3,
-    name: "Mercadinho São José",
-    tipo_zona: "ZONA_NORTE",
-    endereco: "Rua São José, 45",
-    telefone: "(85) 98888-2222",
-    instagram: null,
-    google_maps_url: null,
-    latitude: null,
-    longitude: null,
-    ultima_reposicao: "2026-04-15",
-    ativo: false,
-    criado_em: "2025-11-20T08:00:00Z",
-    atualizado_em: "2026-04-20T16:45:00Z",
-  }
-]
+import { listarPDVs, inativarPDV, type PontoDeVenda } from "@/services/api/pdv.service"
+import { listarClientes } from "@/services/api/cliente.service"
 
 export default function PDVsPage() {
   const { toast } = useToast()
@@ -77,6 +26,7 @@ export default function PDVsPage() {
   
   const [search, setSearch] = useState("")
   const [pdvs, setPdvs] = useState<PontoDeVenda[]>([])
+  const [clientesMap, setClientesMap] = useState<Record<number, string>>({})
   const [loading, setLoading] = useState(true)
 
   const [filterModalOpen, setFilterModalOpen] = useState(false)
@@ -85,34 +35,43 @@ export default function PDVsPage() {
   const [zonaFiltro, setZonaFiltro] = useState<string>("")
   const [zonaTemp, setZonaTemp] = useState<string>("")
 
+  useEffect(() => {
+    const carregarMapeamentoClientes = async () => {
+      try {
+        const response = await listarClientes()
+        const mapa: Record<number, string> = {}
+        
+        if (response && response.costumers) {
+          response.costumers.forEach((cliente) => {
+            mapa[cliente.id] = cliente.name
+          })
+        }
+        
+        setClientesMap(mapa)
+      } catch (error) {
+        console.error("Erro ao carregar clientes para o mapa de PDVs:", error)
+      }
+    }
+
+    carregarMapeamentoClientes()
+  }, [])
+
   const fetchPdvs = useCallback(async () => {
     setLoading(true)
     try {
-      // Simula tempo de rede
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      let ativoQuery: boolean | undefined = undefined;
+      if (statusFiltro === "true") ativoQuery = true;
+      if (statusFiltro === "false") ativoQuery = false;
 
-      let resultados = [...mockPdvs]
+      const data = await listarPDVs({
+        name: search.trim().length >= 3 ? search.trim() : undefined,
+        tipo_zona: zonaFiltro || undefined,
+        ativo: ativoQuery
+      })
 
-      // Filtro por Nome
-      if (search.trim().length >= 3) {
-        resultados = resultados.filter(p => 
-          p.name.toLowerCase().includes(search.trim().toLowerCase())
-        )
-      }
-
-      // Filtro por Zona
-      if (zonaFiltro) {
-        resultados = resultados.filter(p => p.tipo_zona === zonaFiltro)
-      }
-
-      // Filtro por Status
-      if (statusFiltro !== "") {
-        const isAtivo = statusFiltro === "true"
-        resultados = resultados.filter(p => p.ativo === isAtivo)
-      }
-
-      setPdvs(resultados)
-    } catch {
+      setPdvs(data)
+    } catch (error: any) {
+      console.error("Erro detalhado do FastAPI:", error.response?.data)
       toast({
         title: "Erro ao carregar PDVs",
         description: "Não foi possível buscar os Pontos de Venda. Tente novamente.",
@@ -137,8 +96,7 @@ export default function PDVsPage() {
 
     setIsRemoving(true)
     try {
-      // Simula chamada de PATCH na API para inativar
-      await new Promise((resolve) => setTimeout(resolve, 600))
+      await inativarPDV(idParaRemover)
 
       toast({
         title: "PDV inativado",
@@ -147,7 +105,7 @@ export default function PDVsPage() {
       })
 
       setRemoveModalOpen(false)
-      fetchPdvs() // Recarrega a lista
+      fetchPdvs()
     } catch (error) {
       toast({
         title: "Erro ao remover",
@@ -263,6 +221,15 @@ export default function PDVsPage() {
               <div className="hidden md:flex h-full flex-col flex-1 min-h-0">
                 <Table
                   columns={[
+                    {
+                      key: "id_cliente",
+                      label: "Cliente Vinculado",
+                      render: (row) => (
+                        <span className="text-body-md text-(--txt-primary)">
+                          {clientesMap[row.id_cliente] || `Cliente #${row.id_cliente}`}
+                        </span>
+                      )
+                    },
                     { key: "name", label: "Nome do PDV", sortable: true },
                     { 
                       key: "tipo_zona",
@@ -356,6 +323,15 @@ export default function PDVsPage() {
                 <MobileTable 
                   columns={[
                     { key: "name", label: "PDV" },
+                    {
+                      key: "id_cliente",
+                      label: "Cliente",
+                      render: (row) => (
+                        <span className="text-body-sm font-medium text-(--txt-secondary)">
+                          {clientesMap[row.id_cliente] || `Cliente #${row.id_cliente}`}
+                        </span>
+                      )
+                    },
                     { 
                       key: "tipo_zona",
                       label: "Zona",
@@ -493,9 +469,10 @@ export default function PDVsPage() {
             </Button>
             <Button
               variant="secondary"
+              disabled={isRemoving}
               onClick={() => onRemover()}
             >
-              Inativar PDV
+              {isRemoving ? "Inativando..." : "Inativar PDV"}
             </Button>
           </>
         }

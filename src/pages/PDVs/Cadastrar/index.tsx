@@ -5,6 +5,9 @@ import { type PDVFormData } from "@/schemas/pdv.schema"
 import { PDVForm } from "@/components/forms/PDVForm"
 import { useState, useEffect } from "react"
 
+import { criarPDV } from "@/services/api/pdv.service"
+import { listarClientes } from "@/services/api/cliente.service"
+
 export default function CadastrarPDVPage() {
   const { toast } = useToast()
   const navigate = useNavigate()
@@ -15,35 +18,51 @@ export default function CadastrarPDVPage() {
   const [clientesOptions, setClientesOptions] = useState<{label: string, value: string}[]>([])
 
   useEffect(() => {
-    // MOCK: Buscando clientes do banco para preencher o Select
-    setTimeout(() => {
-      setClientesOptions([
-        { label: "João da Silva", value: "1" },
-        { label: "Burger & Co.", value: "2" },
-        { label: "Mercadinho São José", value: "3" },
-      ])
-    }, 300)
-  }, [])
+    const fetchClientes = async () => {
+      try {
+        const response = await listarClientes()
+        
+        const options = (response.costumers || []).map((cliente) => ({
+          label: cliente.name,
+          value: String(cliente.id) 
+        }))
+        
+        setClientesOptions(options)
+      } catch (error) {
+        console.error("Erro ao carregar clientes para o select:", error)
+        toast({
+          title: "Aviso",
+          description: "Não foi possível carregar a lista de clientes para vinculação.",
+          variant: "danger",
+        })
+      }
+    }
+
+    fetchClientes()
+  }, [toast])
 
   const handleCadastro = async (data: PDVFormData) => {
     setIsSubmitting(true)
     try {
-      // SIMULAÇÃO: Espera 800ms fingindo que está salvando na API
-      await new Promise((resolve) => setTimeout(resolve, 800))
+      const payload = {
+        ...data,
+        id_cliente: Number(data.id_cliente)
+      }
       
-      console.log("Dados que seriam enviados para a API de PDV:", data)
-
+      await criarPDV(payload as PDVFormData)
+      
       toast({
-        title: "PDV cadastrado (Simulação)!",
-        description: `${data.name} foi adicionado no mock com sucesso.`,
+        title: "PDV cadastrado com sucesso!",
+        description: `O ponto de venda "${data.name}" foi adicionado ao sistema.`,
         variant: "success",
       })
       
       navigate("/pdvs")
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Erro ao cadastrar PDV:", error)
       toast({
         title: "Erro ao cadastrar",
-        description: "Houve um problema na simulação.",
+        description: error.response?.data?.detail || "Ocorreu um erro ao tentar cadastrar o PDV.",
         variant: "danger",
       })
     } finally {
@@ -68,7 +87,6 @@ export default function CadastrarPDVPage() {
               onSubmit={handleCadastro} 
               mode="create" 
               clientesOptions={clientesOptions}
-              // Pré-seleciona o cliente se tiver vindo da tela de detalhes do cliente
               defaultValues={clienteParamId ? { id_cliente: Number(clienteParamId) } : undefined}
             />
           </div>
