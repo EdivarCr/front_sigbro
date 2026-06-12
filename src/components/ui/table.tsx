@@ -137,12 +137,13 @@ export function Table<T extends { id?: string | number }>({
                       className={cn(
                         "h-14 border-b border-(--txt-placeholder) px-4 py-2 font-sans text-sm text-(--txt-primary)",
                         col.className
-                      )}
-                    >
+                      )}>
                       <div className={cn(
                         "block truncate",
                         col.key === 'nome' && "max-w-36 lg:max-w-42" 
-                      )}>
+                      )}
+                      title={col.key === 'nome' ? String(row[col.key as keyof T] ?? "") : undefined}
+                      >
                         {(row[col.key as keyof T] ?? "") !== "" || col.key === "acoes" ? (
                           col.render ? col.render(row) : String(row[col.key as keyof T] ?? "")
                         ) : (

@@ -230,7 +230,8 @@ export default function PDVsPage() {
                         <span className="text-body-md text-(--txt-primary)">
                           {clientesMap[row.id_cliente] || `Cliente #${row.id_cliente}`}
                         </span>
-                      )
+                      ),
+                      sortable: true
                     },
                     { key: "name", label: "Nome do PDV", sortable: true },
                     { 

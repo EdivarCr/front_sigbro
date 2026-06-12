@@ -120,7 +120,7 @@ export default function DetalhesClientePage() {
           
           {/* Card 1: Identificação */}
           <div className="flex flex-col gap-4 rounded-sm border border-(--bg-sidebar) bg-(--bg-surface) p-6 shadow-sm">
-            <h3 className="text-body-md font-bold uppercase tracking-wider text-(--txt-secondary) border-b border-(--border-default) pb-2">
+            <h3 className="text-body-md font-bold uppercase tracking-wider text-(--txt-secondary) pb-2">
               Identificação
             </h3>
             <div className="flex flex-col gap-3">
@@ -137,7 +137,7 @@ export default function DetalhesClientePage() {
 
           {/* Card 2: Contato e Localização */}
           <div className="flex flex-col gap-4 rounded-sm border border-(--bg-sidebar) bg-(--bg-surface) p-6 shadow-sm">
-            <h3 className="text-body-md font-bold uppercase tracking-wider text-(--txt-secondary) border-b border-(--border-default) pb-2">
+            <h3 className="text-body-md font-bold uppercase tracking-wider text-(--txt-secondary) pb-2">
               Contato
             </h3>
             <div className="flex flex-col gap-3">
@@ -158,7 +158,7 @@ export default function DetalhesClientePage() {
 
           {/* Card 3: Financeiro / Estatísticas */}
           <div className="flex flex-col gap-4 rounded-sm border border-(--bg-sidebar) bg-(--bg-surface) p-6 shadow-sm">
-            <h3 className="text-body-md font-bold uppercase tracking-wider text-(--txt-secondary) border-b border-(--border-default) pb-2">
+            <h3 className="text-body-md font-bold uppercase tracking-wider text-(--txt-secondary) pb-2">
               Estatísticas
             </h3>
             <div className="flex flex-col gap-3">

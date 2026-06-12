@@ -12,46 +12,48 @@ import {
   CalendarBlankIcon,
   UserIcon
 } from "@phosphor-icons/react"
-import { type PontoDeVenda } from "@/services/api/pdv.service"
+import { useToast } from "@/context/ToastContext"
+
+import { type PontoDeVenda, obterPDVPorId } from "@/services/api/pdv.service"
+import { obterClientePorId } from "@/services/api/cliente.service"
 
 export default function DetalhesPDVPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  
+  const { toast } = useToast()
+
   const [pdv, setPdv] = useState<PontoDeVenda | null>(null)
-  const [nomeClienteMock, setNomeClienteMock] = useState<string>("")
+  const [nomeCliente, setNomeCliente] = useState<string>("")
   const [loading, setLoading] = useState(true)
 
-  // SIMULAÇÃO: Carregando dados do PDV
   useEffect(() => {
-    const carregarDadosMock = () => {
-      setTimeout(() => {
-        setPdv({
-          id: Number(id),
-          id_cliente: 2,
-          name: "Burger & Co. (Shopping)",
-          tipo_zona: "ZONA_OESTE",
-          endereco: "Av. Washington Soares, 85 - Piso L2",
-          telefone: "(85) 3232-0000",
-          instagram: "@burgerco_shop",
-          google_maps_url: "https://goo.gl/maps/exemplo",
-          latitude: null, // Omitido na UI por enquanto
-          longitude: null, // Omitido na UI por enquanto
-          ultima_reposicao: "2026-05-28T14:00:00Z",
-          ativo: true,
-          criado_em: "2026-02-15T14:30:00Z",
-          atualizado_em: "2026-05-28T09:15:00Z",
+    const carregarDados = async () => {
+      if (!id) return
+      try {
+        setLoading(true)
+
+        const pdvDados = await obterPDVPorId(Number(id))
+        setPdv(pdvDados)
+
+        if (pdvDados?.id_cliente) {
+          const clienteDados = await obterClientePorId(pdvDados.id_cliente)
+          setNomeCliente(clienteDados.name)
+        }
+      } catch (error) {
+        console.error("Erro ao buscar detalhes do PDV e Cliente:", error)
+        toast({
+          title: "Ponto de Venda não encontrado",
+          description: "Não foi possível carregar as informações deste PDV.",
+          variant: "danger",
         })
-        
-        // Simulamos que fomos buscar o nome do cliente associado ao id_cliente
-        setNomeClienteMock("Burger & Co.")
-        
+        navigate("/pdvs")
+      } finally {
         setLoading(false)
-      }, 500)
+      }
     }
 
-    carregarDadosMock()
-  }, [id])
+    carregarDados()
+  }, [id, navigate, toast])
 
   if (loading) {
     return (
@@ -142,7 +144,7 @@ export default function DetalhesPDVPage() {
                   className="h-auto p-0 font-bold hover:underline"
                   onClick={() => navigate(`/clientes/${pdv.id_cliente}`)}
                 >
-                  {nomeClienteMock}
+                  {nomeCliente}
                 </Button>
               </div>
               <div className="flex items-center justify-between text-(--txt-primary)">
@@ -157,10 +159,10 @@ export default function DetalhesPDVPage() {
             </div>
           </div>
 
-          {/* Card 2: Contacto e Localização */}
+          {/* Card 2: Contato e Localização */}
           <div className="flex flex-col gap-4 rounded-sm border border-(--bg-sidebar) bg-(--bg-surface) p-6 shadow-sm">
             <h3 className="text-body-md font-bold uppercase tracking-wider text-(--txt-secondary) pb-2">
-              Contacto e Localização
+              Contato e Localização
             </h3>
             <div className="flex flex-col gap-3">
               <div className="flex items-start gap-3 text-(--txt-primary)">
