@@ -17,7 +17,10 @@ export default function CadastrarLotePage() {
     async function loadProdutos() {
       try {
         const resp = await listarProdutos({ limit: 100, offset: 0 })
-        setProdutos(resp.products.map((p) => ({ label: p.nome, value: String(p.id) })))
+        // Apenas produtos ativos são listados para seleção
+        const produtosFormatados = (resp.products || []).filter((p: any) => p.ativo === true)
+
+        setProdutos(produtosFormatados.map((p) => ({ label: p.nome, value: String(p.id) })))
       } catch (err) {
         setProdutos([])
       }

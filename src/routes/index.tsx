@@ -39,6 +39,9 @@ import DetalhesPDVPage from "@/pages/PDVs/Detalhes"
 import EditarPDVPage from "@/pages/PDVs/Editar"
 
 import VendasPage from "@/pages/Vendas"
+import CadastrarVendaPage from "@/pages/Vendas/cadastrar"
+import DetalhesVendaPage from "@/pages/Vendas/detalhes"
+import EditarVendaPage from "@/pages/Vendas/editar"
 
 export const router = createBrowserRouter([
   // Rotas públicas
@@ -109,7 +112,15 @@ export const router = createBrowserRouter([
               { path: "editar/:id", element: <EditarPDVPage /> },
             ],
           },
-          { path: "/vendas", element: <VendasPage /> },
+          { 
+            path: "/vendas",
+            children: [
+              { index: true, element: <VendasPage /> },
+              { path: "cadastrar", element: <CadastrarVendaPage /> },
+              { path: ":id", element: <DetalhesVendaPage /> },
+              { path: "editar/:id", element: <EditarVendaPage /> },
+            ],
+          },
         ],
       },
     ],

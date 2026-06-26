@@ -292,6 +292,101 @@ export default function DetalhesClientePage() {
           </div>
         </div>
 
+        {/* Seção de Histórico de Vendas */}
+        <div className="flex flex-col mt-6 gap-4 border-t border-(--border-default) pt-8">
+          <div className="flex flex-col">
+            <h2 className="text-h2 text-(--txt-primary)">Histórico de Vendas</h2>
+            <span className="text-body-sm text-(--txt-secondary)">Todas as operações comerciais realizadas para este cliente.</span>
+          </div>
+
+          {/* Tabela Desktop */}
+          <div className="hidden md:block">
+            <Table
+              columns={[
+                { 
+                  key: "id", 
+                  label: "Cód. Venda", 
+                  render: (row) => <span className="font-semibold">#{row.id}</span> 
+                },
+                { 
+                  key: "data_venda", 
+                  label: "Data", 
+                  render: (row) => new Date(row.data_venda).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) 
+                },
+                { 
+                  key: "tipo_venda", 
+                  label: "Modalidade",
+                  render: (row) => (
+                    <span className={`inline-flex items-center justify-center text-body-sm rounded-full px-2.5 py-0.5 font-medium leading-none ${
+                      row.tipo_venda === "ATACADO" ? "bg-(--color-blue)/15 text-(--color-blue)" : "bg-(--color-green)/15 text-(--color-green)"
+                    }`}>
+                      {row.tipo_venda === "ATACADO" ? "Atacado" : "Varejo"}
+                    </span>
+                  )
+                },
+                { 
+                  key: "status_pagamento", 
+                  label: "Status",
+                  render: (row) => {
+                    let colorClass = "bg-gray-100 text-gray-600";
+                    if (row.status_pagamento === "PAGO") colorClass = "bg-(--color-green)/15 text-(--color-green)";
+                    if (row.status_pagamento === "PENDENTE") colorClass = "bg-(--color-yellow)/15 text-(--color-yellow)";
+                    if (row.status_pagamento === "CANCELADO") colorClass = "bg-(--color-red)/15 text-(--color-red)";
+                    return (
+                      <span className={`inline-flex items-center justify-center text-body-sm rounded-full px-2.5 py-0.5 font-medium leading-none ${colorClass}`}>
+                        {row.status_pagamento.toLowerCase()}
+                      </span>
+                    );
+                  }
+                },
+                { 
+                  key: "valor_total", 
+                  label: "Valor Total", 
+                  render: (row) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(row.valor_total)) 
+                },
+                {
+                  key: "acoes",
+                  label: "Ações",
+                  className: "w-16",
+                  render: (row) => (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigate(`/vendas/${row.id}`)}
+                      title="Ver Detalhes da Venda"
+                    >
+                      <EyeIcon size={16} />
+                    </Button>
+                  ),
+                },
+              ]}
+              data={cliente.vendas || []}
+              pageSize={5}
+              emptyValue="Nenhuma venda registrada para este cliente."
+            />
+          </div>
+
+          {/* Tabela Mobile */}
+          <div className="block md:hidden">
+            <MobileTable 
+              columns={[
+                { key: "id", label: "Venda", render: (row) => `#${row.id}` },
+                { key: "valor_total", label: "Total", render: (row) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(row.valor_total)) },
+              ]}
+              renderBottomAction={(row) => (
+                <Button 
+                  variant="outlined" 
+                  className="w-full gap-2 text-body-sm"
+                  onClick={() => navigate(`/vendas/${row.id}`)}
+                >
+                  <EyeIcon size={16} /> Ver Venda
+                </Button>
+              )}
+              data={cliente.vendas || []}
+              emptyValue="Nenhuma venda registrada."
+            />
+          </div>
+        </div>
       </div>
     </div>
   )

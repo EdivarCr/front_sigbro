@@ -1,4 +1,5 @@
 import apiClient from "./client"
+import type { Venda } from "./vendas.service"
 
 export type TipoCliente = "PESSOA_FISICA" | "RESTAURANTE" | "COMERCIO"
 
@@ -13,6 +14,7 @@ export interface Cliente {
   total_compras: number
   quantidade_compras: number
   ultima_compra: string | null
+  vendas?: Venda[]
 }
 
 export interface ClienteCreate {
@@ -89,7 +91,7 @@ export async function removerCliente(id: number) {
 export const clienteService = {
   listarClientes,
   obterClientePorId,
-  criarCliente,
+  createCliente: criarCliente,
   atualizarCliente,
   removerCliente
 }
