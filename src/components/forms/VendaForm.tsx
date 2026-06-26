@@ -382,7 +382,7 @@ export function VendaForm({ onSubmit, defaultValues, mode, clientesDisponiveis, 
             control={controlItem} 
             render={({ fieldState }) => (
               <SelectField
-                label="Selecione o Produto *"
+                label="Selecione o Produto"
                 placeholder="Buscar produto..."
                 options={produtosDisponiveis.map(p => ({ label: p.nome, value: String(p.id) }))}
                 value={String(watchItem("produto_id") || "")}
