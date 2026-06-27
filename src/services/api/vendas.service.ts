@@ -75,9 +75,13 @@ export interface VendaListResponse {
 export interface FilterVenda {
   offset?: number
   limit?: number
-  search?: string // Não mapeado no back ainda
-  tipo_venda?: string // Não mapeado no back ainda
-  status_pagamento?: string // Não mapeado no back ainda
+  data_inicio?: string | null  
+  data_fim?: string | null 
+  status_pagamento?: StatusPagamento | null
+  pvd_id?: number | null
+  cliente_id?: number | null
+  forma_pagamento?: FormaPagamento | null
+  tipo_venda?: TipoVenda | null
 }
 
 // Funções da API

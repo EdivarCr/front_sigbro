@@ -1,4 +1,5 @@
-import { type Venda, listarVendas } from "@/services/api/vendas.service"
+import type { FormaPagamento, StatusPagamento, TipoVenda } from "@/schemas/vendas.schema"
+import { type FilterVenda, type Venda, listarVendas } from "@/services/api/vendas.service"
 import { listarClientes, type Cliente } from "@/services/api/cliente.service"
 import { listarProdutos, type ProdutoListItem } from "@/services/api/produtos.service"
 // TODO: Importar removerVenda quando estiver implementado no back-end
@@ -37,37 +38,80 @@ export default function VendasPage() {
 
   // Estados dos Filtros
   const [filterModalOpen, setFilterModalOpen] = useState(false)
-  const [tipoFiltro, setTipoFiltro] = useState<string>("")
-  const [statusFiltro, setStatusFiltro] = useState<string>("")
-  const [tipoTemp, setTipoTemp] = useState<string>("")
-  const [statusTemp, setStatusTemp] = useState<string>("")
+  const [tipoFiltro, setTipoFiltro] = useState<TipoVenda | "">("")
+  const [statusFiltro, setStatusFiltro] = useState<StatusPagamento | "">("")
+  const [formaPagamentoFiltro, setFormaPagamentoFiltro] = useState<FormaPagamento | "">("")
+  const [dataInicioFiltro, setDataInicioFiltro] = useState<string>("")
+  const [dataFimFiltro, setDataFimFiltro] = useState<string>("")
+
+  // Estados Temporários do Modal de Filtros
+  const [tipoTemp, setTipoTemp] = useState<TipoVenda | "">("")
+  const [statusTemp, setStatusTemp] = useState<StatusPagamento | "">("")
+  const [formaPagamentoTemp, setFormaPagamentoTemp] = useState<FormaPagamento | "">("")
+  const [dataInicioTemp, setDataInicioTemp] = useState<string>("")
+  const [dataFimTemp, setDataFimTemp] = useState<string>("")
+
+  useEffect(() => {
+    async function carregarDadosMestres() {
+      try {
+        const [clientesRes, produtosRes] = await Promise.all([
+          listarClientes({ limit: 1000 }),
+          listarProdutos({ limit: 1000 })
+        ])
+        setClientes(clientesRes.costumers || (clientesRes as any).customers || [])
+        setProdutos(produtosRes.products || [])
+      } catch (error) {
+        console.error("Erro ao carregar dados mestres:", error)
+      }
+    }
+    carregarDadosMestres()
+  }, [])
 
   const fetchVendas = useCallback(async () => {
     setLoading(true)
     try {
-      const [vendasRes, clientesRes, produtosRes] = await Promise.all([
-        listarVendas({ limit: 10, offset: 0 }),
-        listarClientes({ limit: 1000 }),
-        listarProdutos({ limit: 1000 })
-      ])
-    
-      setClientes(clientesRes.costumers || [])
-      setProdutos(produtosRes.products || [])
-    
+      let clienteIdMapeado: number | null = null
+
+      // Mapeia o texto digitado na barra de pesquisa para o ID do cliente correspondente
+      if (search.trim().length >= 3) {
+        const clienteEncontrado = clientes.find(c => 
+          c.name.toLowerCase().includes(search.toLowerCase().trim())
+        )
+        if (clienteEncontrado) {
+          clienteIdMapeado = clienteEncontrado.id
+        } else {
+          // Se digitou o nome mas não encontrou o cliente, zera a lista forçadamente
+          setVendas([])
+          setLoading(false)
+          return
+        }
+      }
+
+      const filtros: FilterVenda = {
+        limit: 50,
+        offset: 0,
+        tipo_venda: tipoFiltro || null,
+        status_pagamento: statusFiltro || null,
+        forma_pagamento: formaPagamentoFiltro || null,
+        data_inicio: dataInicioFiltro || null,
+        data_fim: dataFimFiltro || null,
+        cliente_id: clienteIdMapeado
+      }
+
+      const vendasRes = await listarVendas(filtros)
       const vendasOrdenadas = (vendasRes.itens || []).sort((a, b) => b.id - a.id)
       setVendas(vendasOrdenadas)
     } catch (error) {
-      console.error("Erro ao listar vendas:", error)
+      console.error("Erro ao listar vendas filtradas:", error)
       toast({
         title: "Erro ao carregar vendas",
-        description: "Não foi possível buscar o histórico de vendas. Tente novamente.",
+        description: "Não foi possível aplicar os filtros no histórico de vendas.",
         variant: "danger",
       })
     } finally {
       setLoading(false)
     }
-  }, [search, tipoFiltro, statusFiltro, toast])
-
+  }, [search, tipoFiltro, statusFiltro, formaPagamentoFiltro, dataInicioFiltro, dataFimFiltro, clientes, toast])
   useEffect(() => {
     const handler = setTimeout(() => fetchVendas(), 500)
     return () => clearTimeout(handler)
@@ -118,9 +162,18 @@ export default function VendasPage() {
     "CANCELADO": "Cancelado",
   }
 
-  const formatarData = (dataISO: string) => {
-    if (!dataISO) return "—"
-    return new Date(dataISO).toLocaleDateString("pt-BR")
+  const formaPagamentoLabels: Record<string, string> = {
+    DINHEIRO: "Dinheiro",
+    CARTAO_CREDITO: "Cartão de Crédito",
+    CARTAO_DEBITO: "Cartão de Débito",
+    PIX: "Pix",
+    BOLETO: "Boleto",
+  }
+
+  const formatarDataTag = (dataStr: string) => {
+    if (!dataStr) return ""
+    const [ano, mes, dia] = dataStr.split("-")
+    return `${dia}/${mes}/${ano}`
   }
 
   return (
@@ -139,11 +192,10 @@ export default function VendasPage() {
             <div className="flex-1">
               <Input
                 type="search"
-                placeholder="Buscar por cliente ou produto"
+                placeholder="Buscar por cliente..."
                 iconRight={<MagnifyingGlassIcon />}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                disabled
               />
             </div>
             <div className="flex shrink-0 flex-col gap-2 md:flex-row">
@@ -153,9 +205,11 @@ export default function VendasPage() {
                 onClick={() => {
                   setTipoTemp(tipoFiltro)
                   setStatusTemp(statusFiltro)
+                  setFormaPagamentoTemp(formaPagamentoFiltro)
+                  setDataInicioTemp(dataInicioFiltro)
+                  setDataFimTemp(dataFimFiltro)
                   setFilterModalOpen(true)
                 }}
-                disabled
               >
                 Filtrar Vendas
                 <FadersIcon />
@@ -173,8 +227,10 @@ export default function VendasPage() {
           </div>
 
           {/* Área de Tags de Filtro Ativos */}
-          {(tipoFiltro || statusFiltro) && (
-            <div className="flex flex-row gap-2 flex-wrap">
+          {(tipoFiltro || statusFiltro || formaPagamentoFiltro || dataInicioFiltro || dataFimFiltro) && (
+            <div className="flex flex-row gap-2 flex-wrap shrink-0">
+              
+              {/* Tag: Tipo de Venda */}
               {tipoFiltro && (
                 <div className="text-body-sm flex items-center gap-1 rounded-xs bg-(--bg-sidebar) px-2 py-1 text-(--txt-primary)">
                   <strong>Tipo:</strong> {tipoLabels[tipoFiltro]}
@@ -189,6 +245,8 @@ export default function VendasPage() {
                   </button>
                 </div>
               )}
+
+              {/* Tag: Status de Pagamento */}
               {statusFiltro && (
                 <div className="text-body-sm flex items-center gap-1 rounded-xs bg-(--bg-sidebar) px-2 py-1 text-(--txt-primary)">
                   <strong>Status:</strong> {statusLabels[statusFiltro]}
@@ -203,6 +261,55 @@ export default function VendasPage() {
                   </button>
                 </div>
               )}
+
+              {/* Tag: Forma de Pagamento */}
+              {formaPagamentoFiltro && (
+                <div className="text-body-sm flex items-center gap-1 rounded-xs bg-(--bg-sidebar) px-2 py-1 text-(--txt-primary)">
+                  <strong>Forma:</strong> {formaPagamentoLabels[formaPagamentoFiltro]}
+                  <button
+                    onClick={() => {
+                      setFormaPagamentoFiltro("")
+                      setFormaPagamentoTemp("")
+                    }}
+                    className="ml-1 cursor-pointer text-(--txt-secondary) hover:text-(--color-red)"
+                  >
+                    <XIcon size={12} />
+                  </button>
+                </div>
+              )}
+
+              {/* Tag: Data de Início */}
+              {dataInicioFiltro && (
+                <div className="text-body-sm flex items-center gap-1 rounded-xs bg-(--bg-sidebar) px-2 py-1 text-(--txt-primary)">
+                  <strong>Início:</strong> {formatarDataTag(dataInicioFiltro)}
+                  <button
+                    onClick={() => {
+                      setDataInicioFiltro("")
+                      setDataInicioTemp("")
+                    }}
+                    className="ml-1 cursor-pointer text-(--txt-secondary) hover:text-(--color-red)"
+                  >
+                    <XIcon size={12} />
+                  </button>
+                </div>
+              )}
+
+              {/* Tag: Data Fim */}
+              {dataFimFiltro && (
+                <div className="text-body-sm flex items-center gap-1 rounded-xs bg-(--bg-sidebar) px-2 py-1 text-(--txt-primary)">
+                  <strong>Fim:</strong> {formatarDataTag(dataFimFiltro)}
+                  <button
+                    onClick={() => {
+                      setDataFimFiltro("")
+                      setDataFimTemp("")
+                    }}
+                    className="ml-1 cursor-pointer text-(--txt-secondary) hover:text-(--color-red)"
+                  >
+                    <XIcon size={12} />
+                  </button>
+                </div>
+              )}
+              
             </div>
           )}
 
@@ -232,7 +339,7 @@ export default function VendasPage() {
                       key: "data_venda", 
                       label: "Data da Venda", 
                       sortable: true,
-                      render: (row) => formatarData(row.data_venda)
+                      render: (row) => formatarDataTag(row.data_venda)
                     },
                     { 
                       key: "itens", 
@@ -449,28 +556,57 @@ export default function VendasPage() {
               onClick={() => {
                 setTipoFiltro("")
                 setStatusFiltro("")
+                setFormaPagamentoFiltro("")
+                setDataInicioFiltro("")
+                setDataFimFiltro("")
                 setTipoTemp("")
                 setStatusTemp("")
+                setFormaPagamentoTemp("")
+                setDataInicioTemp("")
+                setDataFimTemp("")
                 setFilterModalOpen(false)
               }}
             >
-              Limpar Filtro
+              Limpar Filtros
             </Button>
             <Button
               variant="primary"
-              className="bg-brand text-white border-none"
+              className="bg-brand text-white border-none hover:bg-brand-hover"
               onClick={() => {
                 setTipoFiltro(tipoTemp)
                 setStatusFiltro(statusTemp)
+                setFormaPagamentoFiltro(formaPagamentoTemp)
+                setDataInicioFiltro(dataInicioTemp)
+                setDataFimFiltro(dataFimTemp)
                 setFilterModalOpen(false)
               }}
             >
-              Aplicar
+              Aplicar Filtros
             </Button>
           </>
         }
       >
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-(--spacing-md)">
+          {/* Filtros de Período de Datas */}
+          <div className="grid grid-cols-2 gap-(--spacing-sm)">
+            <div className="flex flex-col gap-1">
+              <Input 
+                type="date"
+                label="Data de Início" 
+                value={dataInicioTemp}
+                onChange={(e) => setDataInicioTemp(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <Input 
+                type="date"
+                label="Data de Fim"
+                value={dataFimTemp}
+                onChange={(e) => setDataFimTemp(e.target.value)}
+              />
+            </div>
+          </div>
+
           <SelectField
             label="Tipo de Venda"
             placeholder="Todos os tipos"
@@ -479,8 +615,9 @@ export default function VendasPage() {
               { label: "Varejo", value: "VAREJO" },
             ]}
             value={tipoTemp}
-            onValueChange={setTipoTemp}
+            onValueChange={(val) => setTipoTemp(val as TipoVenda || "")}
           />
+          
           <SelectField
             label="Status do Pagamento"
             placeholder="Todos os status"
@@ -490,7 +627,21 @@ export default function VendasPage() {
               { label: "Cancelado", value: "CANCELADO" },
             ]}
             value={statusTemp}
-            onValueChange={setStatusTemp}
+            onValueChange={(val) => setStatusTemp(val as StatusPagamento || "")}
+          />
+
+          <SelectField
+            label="Forma de Pagamento"
+            placeholder="Todas as formas"
+            options={[
+              { label: "Dinheiro", value: "DINHEIRO" },
+              { label: "Cartão de Crédito", value: "CARTAO_CREDITO" },
+              { label: "Cartão de Débito", value: "CARTAO_DEBITO" },
+              { label: "Pix", value: "PIX" },
+              { label: "Boleto", value: "BOLETO" },
+            ]}
+            value={formaPagamentoTemp}
+            onValueChange={(val) => setFormaPagamentoTemp(val as FormaPagamento || "")}
           />
         </div>
       </Modal>
