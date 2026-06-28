@@ -14,6 +14,7 @@ import LoginPage from "@/pages/Login"
 import PerfilPage from "@/pages/Perfil"
 import ResetPasswordPage from "@/pages/ResetPassword"
 import DashboardPage from "@/pages/Dashboard"
+import DashboardLucratividadePage from "@/pages/DashboardLucratividade"
 
 import ProdutosPage from "@/pages/Produtos"
 import CadastrarProdutoPage from "@/pages/Produtos/cadastrar"
@@ -70,6 +71,7 @@ export const router = createBrowserRouter([
         element: <MainLayout />,
         children: [
           { path: "/", element: <DashboardPage /> },
+          { path: "/lucratividade", element: <DashboardLucratividadePage /> },
           { path: "/perfil", element: <PerfilPage /> },
           {
             path: "/produtos",

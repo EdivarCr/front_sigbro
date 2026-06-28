@@ -25,7 +25,7 @@ import { Button } from "../ui/button"
 
 const navItems = [
   { to: "/", label: "Tela Inicial", icon: ChartPieSliceIcon },
-  { to: "/lucros", label: "Painel de Lucros", icon: ChartLineUpIcon },
+  { to: "/lucratividade", label: "Painel de Lucros", icon: ChartLineUpIcon },
   { to: "/produtos", label: "Gestão de Produtos", icon: PackageIcon },
   { to: "/estoque", label: "Controle de Estoque", icon: StackIcon },
   { to: "/insumos", label: "Insumos", icon: BasketIcon },
