@@ -52,9 +52,12 @@ function ProducaoCreateForm({ onSubmit, produtos }: ProducaoFormCreateProps) {
     mode: "onBlur",
   })
 
+    // Correção do off-by-one: adiciona T00:00:00 para forçar horário local
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col gap-6">
-      <div className="flex w-full flex-col gap-4 rounded-sm border border-(--bg-sidebar) bg-(--bg-primary) p-6 shadow-sm">
+    <form onSubmit={handleSubmit((data) => {
+      onSubmit({ ...data, validade: data.validade ? `${data.validade}T00:00:00` : data.validade })
+      })} className="flex w-full flex-col gap-6">
+        <div className="flex w-full flex-col gap-4 rounded-sm border border-(--bg-sidebar) bg-(--bg-primary) p-6 shadow-sm">
   <div className="flex w-full flex-col gap-1">
     <Controller
       name="produto_id"
