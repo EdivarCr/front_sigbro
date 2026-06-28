@@ -115,7 +115,7 @@ const validadeProxima = lotesAtivos.filter((l) => {
         for (const e of expirados) e.status = 'VENCIDO'
       }
 
-      let filtrados = lotesComNome
+      let filtrados = [...lotesComNome].sort((a, b) => b.id - a.id)
       if (search.trim().length >= 3) {
         filtrados = filtrados.filter((l) => l.codigo_lote.toLowerCase().includes(search.toLowerCase()))
       }
