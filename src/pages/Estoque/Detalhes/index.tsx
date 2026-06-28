@@ -199,7 +199,7 @@ export default function DetalhesLotePage() {
                 <div className="flex items-center gap-1 text-sm text-(--txt-secondary) opacity-70 mt-4">
                   <span>Registrado em:</span>
                   <span className="font-medium">
-                    {new Date(lote.fabricacao).toLocaleDateString('pt-BR')} às {new Date(lote.fabricacao).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}
+                    {new Date(lote.fabricacao).toLocaleDateString('pt-BR', { timeZone: 'America/Fortaleza' })} às {new Date(lote.fabricacao).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Fortaleza' })}
                   </span>
                 </div>
               </div>
@@ -230,11 +230,11 @@ export default function DetalhesLotePage() {
               <div className="flex flex-col gap-3">
                 <div className="flex justify-between items-center">
                   <span className="text-label text-(--txt-secondary)">Data de Fabricação:</span>
-                  <span className="text-sm font-medium text-(--txt-primary)">{new Date(lote.fabricacao).toLocaleDateString('pt-BR')}</span>
+                  <span className="text-sm font-medium text-(--txt-primary)">{new Date(lote.fabricacao).toLocaleDateString('pt-BR', { timeZone: 'America/Fortaleza' })}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-label text-(--txt-secondary)">Válido até:</span>
-                  <span className="text-sm font-medium text-(--txt-primary)">{new Date(lote.validade).toLocaleDateString('pt-BR')}</span>
+                  <span className="text-sm font-medium text-(--txt-primary)">{new Date(lote.validade).toLocaleDateString('pt-BR', { timeZone: 'America/Fortaleza' })}</span>
                 </div>
               </div>
             </div>
