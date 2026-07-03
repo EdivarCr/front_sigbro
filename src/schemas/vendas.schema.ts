@@ -13,7 +13,7 @@ export type TipoContaDestino = z.infer<typeof TipoContaDestinoEnum>
 export type UnidadeMedida = z.infer<typeof UnidadeMedidaEnum>
 
 export const itemVendaSchema = z.object({
-  produto_id: z.number({ error: "O produto é obrigatório" }),
+  produto_id: z.number({ error: "O produto é obrigatório" }).positive("ID do produto inválido"),
   quantidade: z.number().min(1, "A quantidade mínima é 1").default(1),
   preco_unitario: z.number().min(0, "O preço unitário não pode ser negativo"),
   subtotal: z.number().min(0, "O subtotal não pode ser negativo"),
@@ -21,7 +21,7 @@ export const itemVendaSchema = z.object({
 })
 
 export const vendaSchema = z.object({
-  cliente_id: z.number().nullable().optional(),
+  cliente_id: z.number({ error: "Selecione um cliente" }).positive("O cliente é obrigatório"),
   pvd_id: z.number().nullable().optional(),
   
   tipo_venda: TipoVendaEnum.default("ATACADO"),

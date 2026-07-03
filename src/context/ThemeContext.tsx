@@ -14,13 +14,19 @@ interface ThemeContextData {
 const ThemeContext = createContext<ThemeContextData>({} as ThemeContextData)
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [isDark, setIsDark] = useState(false)
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    const saved = localStorage.getItem("sigbro_theme")
+    return saved === "dark"
+  })
 
   useEffect(() => {
+    const root = window.document.documentElement
     if (isDark) {
-      document.documentElement.classList.add("dark")
+      root.classList.add("dark")
+      localStorage.setItem("sigbro_theme", "dark")
     } else {
-      document.documentElement.classList.remove("dark")
+      root.classList.remove("dark")
+      localStorage.setItem("sigbro_theme", "light")
     }
   }, [isDark])
 
