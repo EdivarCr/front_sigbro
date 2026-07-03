@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input"
 import { InputPassword } from "@/components/ui/input-password"
 import { Button } from "@/components/ui/button"
 import heroBanner from "@/assets/images/hero.jpg"
-import logo from "@/assets/images/base-logo-v1.png"
+import logo from "@/assets/images/base-alt-logo-v2.svg"
 import { ArrowUDownLeftIcon } from "@phosphor-icons/react"
 import { useToast } from "@/context/ToastContext"
 import { solicitarRecuperacaoSenha } from "@/services/api/auth.service"
@@ -79,7 +79,7 @@ export default function LoginPage() {
         />
         <div className="absolute inset-0 bg-black/90" />
         <div className="relative z-10 flex w-full items-center justify-center">
-          <img src={logo} alt="Logotipo do sistema SIGBRÓ" className="h-18" />
+          <img src={logo} alt="Logotipo do sistema SIGBRÓ" className="h-24" />
         </div>
       </div>
 

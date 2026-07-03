@@ -7,13 +7,13 @@ import { ProtectedRoute } from "@/components/shared/ProtectedRoute"
 import { AuthLayout } from "@/components/layout/AuthLayout"
 
 // Páginas públicas
-import CatalogoPage from "@/pages/Catalogo"
 import LoginPage from "@/pages/Login"
 
 // Páginas protegidas
 import PerfilPage from "@/pages/Perfil"
 import ResetPasswordPage from "@/pages/ResetPassword"
 import DashboardPage from "@/pages/Dashboard"
+import DashboardLucratividadePage from "@/pages/DashboardLucratividade"
 
 import ProdutosPage from "@/pages/Produtos"
 import CadastrarProdutoPage from "@/pages/Produtos/cadastrar"
@@ -43,6 +43,8 @@ import CadastrarVendaPage from "@/pages/Vendas/cadastrar"
 import DetalhesVendaPage from "@/pages/Vendas/detalhes"
 import EditarVendaPage from "@/pages/Vendas/editar"
 
+import PagamentosPage from "@/pages/Pagamentos"
+
 export const router = createBrowserRouter([
   // Rotas públicas
   {
@@ -52,16 +54,7 @@ export const router = createBrowserRouter([
       { path: "/reset-password", element: <ResetPasswordPage /> },
     ],
   },
-  {
-    element: <PublicLayout />,
-    children: [
-      {
-        path: "/catalogo",
-        element: <CatalogoPage />,
-      },
-    ],
-  },
-
+  
   // Rotas protegidas (Originais)
   {
     element: <ProtectedRoute />,
@@ -70,6 +63,7 @@ export const router = createBrowserRouter([
         element: <MainLayout />,
         children: [
           { path: "/", element: <DashboardPage /> },
+          { path: "/lucratividade", element: <DashboardLucratividadePage /> },
           { path: "/perfil", element: <PerfilPage /> },
           {
             path: "/produtos",
@@ -121,6 +115,7 @@ export const router = createBrowserRouter([
               { path: "editar/:id", element: <EditarVendaPage /> },
             ],
           },
+          { path: "/pagamentos", element: <PagamentosPage /> },
         ],
       },
     ],

@@ -18,14 +18,14 @@ import {
   SignOutIcon,
   CaretDoubleLeftIcon,
 } from "@phosphor-icons/react"
-import logo from "@/assets/images/base-logo-v1.png"
-import logoDark from "@/assets/images/base-alt-logo-v1.png"
+import logo from "@/assets/images/base-logo-v2.svg"
+import logoDark from "@/assets/images/base-alt-logo-v2.svg"
 import { Modal } from "../ui/modal"
 import { Button } from "../ui/button"
 
 const navItems = [
   { to: "/", label: "Tela Inicial", icon: ChartPieSliceIcon },
-  { to: "/lucros", label: "Painel de Lucros", icon: ChartLineUpIcon },
+  { to: "/lucratividade", label: "Painel de Lucros", icon: ChartLineUpIcon },
   { to: "/produtos", label: "Gestão de Produtos", icon: PackageIcon },
   { to: "/estoque", label: "Controle de Estoque", icon: StackIcon },
   { to: "/insumos", label: "Insumos", icon: BasketIcon },
@@ -103,8 +103,8 @@ function SidebarContent({
       <div className="flex items-center justify-between">
         {/* Logo */}
         <img
-          src={isDark ? logo : logoDark}
-          alt="SisBró"
+          src={isDark ? logoDark : logo}
+          alt="SigBró"
           className="h-auto w-40"
         />
 

@@ -14,6 +14,8 @@ import {
   type ProducaoEditData,
 } from "@/schemas/producao.schema"
 
+import { getHojeLocal } from "@/lib/utils"
+
 // Tipo dos produtos disponíveis para seleção
 interface ProdutoOption {
   label: string
@@ -40,7 +42,7 @@ type ProducaoFormProps = ProducaoFormCreateProps | ProducaoFormEditProps
 function ProducaoCreateForm({ onSubmit, produtos }: ProducaoFormCreateProps) {
   const navigate = useNavigate()
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = getHojeLocal()
 
   const {
     register,

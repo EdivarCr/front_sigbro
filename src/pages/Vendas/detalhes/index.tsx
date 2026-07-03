@@ -14,7 +14,8 @@ import {
   ReceiptIcon,
   TagIcon,
   CreditCardIcon,
-  MinusCircleIcon
+  MinusCircleIcon,
+  BankIcon
 } from "@phosphor-icons/react"
 
 import { vendaService, type Venda } from "@/services/api/vendas.service"
@@ -127,6 +128,30 @@ export default function DetalhesVendaPage() {
     )
   }
   
+  const renderContaDestino = (conta: string | null | undefined) => {
+    if (!conta) return <span className="text-body-sm font-medium text-(--txt-secondary)">Aguardando Liquidação</span>
+
+    let colorClass = "bg-gray-100 text-gray-600"
+    let label = conta
+
+    if (conta === "INTER") {
+      colorClass = "bg-[#ff7a00]/15 text-[#cc6200]" // Laranja da marca Inter
+      label = "Banco Inter"
+    } else if (conta === "MAQUININHA_TON") {
+      colorClass = "bg-[#00d84a]/15 text-[#009b35]" // Verde da marca Ton
+      label = "Ton (Cartão)"
+    } else if (conta === "DINHEIRO") {
+      colorClass = "bg-(--color-blue)/15 text-(--color-blue)" // Azul neutro para dinheiro físico
+      label = "Caixa (Dinheiro)"
+    }
+
+    return (
+      <span className={`inline-flex items-center justify-center text-body-sm rounded-full px-2.5 py-1 font-medium leading-none ${colorClass}`}>
+        {label}
+      </span>
+    )
+  }
+
   return (
     <div className="flex h-full flex-col min-h-0">
       <Breadcrumb
@@ -184,6 +209,13 @@ export default function DetalhesVendaPage() {
                   <span className="text-body-sm font-medium">Pagamento:</span>
                 </div>
                 <span className="text-body-sm font-semibold">{venda.forma_pagamento || "Não informado"}</span>
+              </div>
+              <div className="flex items-center justify-between text-(--txt-primary)">
+                <div className="flex items-center gap-2">
+                  <BankIcon size={20} className="text-(--txt-secondary)" />
+                  <span className="text-body-sm font-medium">Conta Destino:</span>
+                </div>
+                {renderContaDestino(venda.tipo_conta_destino)}
               </div>
             </div>
           </div>
