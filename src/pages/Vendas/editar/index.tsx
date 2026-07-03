@@ -52,6 +52,7 @@ export default function EditarVendaPage() {
           tipo_venda: vendaRes.tipo_venda,
           status_pagamento: vendaRes.status_pagamento,
           forma_pagamento: vendaRes.forma_pagamento || null,
+          tipo_conta_destino: vendaRes.tipo_conta_destino || null,
           data_venda: vendaRes.data_venda,
           valor_desconto: Number(vendaRes.valor_desconto || 0),
           itens: (vendaRes.itens || []).map(item => ({
