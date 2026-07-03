@@ -126,7 +126,7 @@ export const exportarLucratividadeParaPDF = async (dados: DadosLucratividade) =>
     formatarMoedaLocal(prod.receita),
     formatarMoedaLocal(prod.custo),
     formatarMoedaLocal(prod.lucro),
-    prod.margem,
+    `${prod.margem.toFixed(2)}%`,
   ])
 
   autoTable(doc, {

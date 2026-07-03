@@ -128,14 +128,13 @@ export const exportarDashboardParaPDF = async (dados: DadosRelatorio) => {
   const corpoTabelaVendas = dados.ultimasVendas.map((venda) => [
     new Date(venda.data).toLocaleDateString("pt-BR", { timeZone: "UTC" }),
     venda.cliente,
-    venda.zona,
     venda.status,
     new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(venda.valor),
   ])
 
   autoTable(doc, {
     startY: finalY + 18,
-    head: [["Data", "Cliente", "Região", "Status", "Valor"]],
+    head: [["Data", "Cliente", "Status", "Valor"]],
     body: corpoTabelaVendas,
     theme: "grid",
     headStyles: { fillColor: [50, 50, 50] },
