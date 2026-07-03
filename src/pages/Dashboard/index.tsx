@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
+import { useFilter } from "@/context/FilterContext"
 import { Breadcrumb } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
 import { Table } from "@/components/ui/table"
@@ -13,9 +14,10 @@ import {
   FileTextIcon,
   PlusIcon,
   TrendUpIcon,
-  TrendDownIcon,
   PencilSimpleIcon
 } from "@phosphor-icons/react"
+
+import { exportarDashboardParaPDF } from "@/lib/relatorioDashboard"
 
 import {
   ResponsiveContainer,
@@ -40,71 +42,187 @@ interface UltimaVendaItem {
   status: "PAGO" | "PENDENTE" | "CANCELADO"
 }
 
+interface HistoricoProdutoItem {
+  name: string
+  qtd: number
+  tipo: "Atacado" | "Varejo"
+  data: string
+  valor: number
+}
+
 export default function DashboardPage() {
   const navigate = useNavigate()
 
-  const [metaMensal, setMetaMensal] = useState<number>(90.00)
+  const {
+    dataInicio,
+    dataFim,
+    periodoTexto,
+    setDataInicio,
+    setDataFim,
+    setPeriodoTexto,
+    limparFiltrosGlobal
+  } = useFilter()
+
+  // Controle de datas
+  const hoje = useMemo(() => new Date().toISOString().split("T")[0], [])
+  const primeiroDiaDoMes = useMemo(() => {
+    const agora = new Date()
+    const ano = agora.getFullYear()
+    const mes = String(agora.getMonth() + 1).padStart(2, "0")
+    return `${ano}-${mes}-01`
+  }, [])
+  const nomeMesAtual = useMemo(() => {
+    return new Date().toLocaleDateString("pt-BR", { month: "long" })
+  }, [])
+
+  const formatarDataBR = (dataStr: string) => {
+    if (!dataStr) return ""
+    const [ano, mes, dia] = dataStr.split("-")
+    return `${dia}/${mes}/${ano}`
+  }
+
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
+  const [dataInicioTemp, setDataInicioTemp] = useState<string>(dataInicio)
+  const [dataFimTemp, setDataFimTemp] = useState<string>(dataFim)
+
+  const isFiltroAtivo = useMemo(() => {
+    return dataInicio !== "" || dataFim !== ""
+  }, [dataInicio, dataFim])
+
+  const [metaMensal, setMetaMensal] = useState<number>(() => {
+    const savedMeta = localStorage.getItem("sigbro_meta_mensal")
+    return savedMeta ? Number(savedMeta) : 90.00
+  })
   const [isMetaModalOpen, setIsMetaModalOpen] = useState(false)
   const [metaTemp, setMetaTemp] = useState<string>("")
-
-  const maisVendidos = [
-    { name: "Produto 1", qtd: 60 },
-    { name: "Produto 2", qtd: 50 },
-    { name: "Produto 3", qtd: 43 },
-    { name: "Produto 4", qtd: 32 },
-    { name: "Produto 5", qtd: 25 },
-  ]
-
-  const menosVendidos = [
-    { name: "Produto 9", qtd: 6 },
-    { name: "Produto 8", qtd: 14 },
-    { name: "Produto 7", qtd: 16 },
-    { name: "Produto 6", qtd: 19 },
-    { name: "Produto 5", qtd: 25 },
-  ]
-
-  const proporcaoVendas = [
-    { name: "Atacado", value: 67, percentage: "75.28%", color: "#a4133c" },
-    { name: "Varejo", value: 22, percentage: "24.72%", color: "#9e475e" },
-  ]
-
-  const totalVendas = proporcaoVendas.reduce((acc, curr) => acc + curr.value, 0)
-  const faturamentoMensal = 1716.20
-
-  const ultimasVendas: UltimaVendaItem[] = [
-    {
-      id: 1,
-      cliente: "Empório Riverside",
-      zona: "Zona Leste",
-      data: "2026-04-05",
-      valor: 485.5,
-      status: "PAGO",
-    },
-    {
-      id: 2,
-      cliente: "Mercadinho Dirceu",
-      zona: "Zona Sudeste",
-      data: "2026-04-04",
-      valor: 212.0,
-      status: "PENDENTE",
-    },
-    {
-      id: 3,
-      cliente: "Parrilla Sul Gourmet",
-      zona: "Zona Sul",
-      data: "2026-04-03",
-      valor: 740.0,
-      status: "PAGO",
-    },
-  ]
-
-  const formatarMoeda = (valor: number) =>
-    new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(valor)
   
-  const porcentagemMeta = metaMensal > 0 ? ((faturamentoMensal / metaMensal) * 100).toFixed(1) : "0.0"
+  // --- BASE DE DADOS MOCKADA ---
+  const historicoVendasProdutos: HistoricoProdutoItem[] = useMemo(() => [
+    // Vendas de Abril 2026
+    { name: "Produto 1", qtd: 40, tipo: "Atacado", data: "2026-04-05", valor: 400 },
+    { name: "Produto 2", qtd: 20, tipo: "Atacado", data: "2026-04-05", valor: 200 },
+    { name: "Produto 3", qtd: 25, tipo: "Atacado", data: "2026-04-03", valor: 250 },
+    { name: "Produto 4", qtd: 15, tipo: "Varejo", data: "2026-04-04", valor: 150 },
+    { name: "Produto 5", qtd: 10, tipo: "Varejo", data: "2026-04-04", valor: 100 },
+    { name: "Produto 6", qtd: 12, tipo: "Atacado", data: "2026-04-01", valor: 120 },
+    { name: "Produto 7", qtd: 10, tipo: "Varejo", data: "2026-04-02", valor: 100 },
+    { name: "Produto 8", qtd: 8, tipo: "Varejo", data: "2026-04-02", valor: 80 },
+    { name: "Produto 9", qtd: 2, tipo: "Varejo", data: "2026-04-03", valor: 20 },
+
+    // Vendas de Maio 2026
+    { name: "Produto 1", qtd: 15, tipo: "Atacado", data: "2026-05-12", valor: 150 },
+    { name: "Produto 2", qtd: 20, tipo: "Varejo", data: "2026-05-14", valor: 200 },
+    { name: "Produto 3", qtd: 10, tipo: "Atacado", data: "2026-05-15", valor: 100 },
+    { name: "Produto 4", qtd: 12, tipo: "Atacado", data: "2026-05-18", valor: 120 },
+    { name: "Produto 5", qtd: 12, tipo: "Varejo", data: "2026-05-19", valor: 120 },
+    { name: "Produto 6", qtd: 5, tipo: "Varejo", data: "2026-05-20", valor: 50 },
+    { name: "Produto 7", qtd: 4, tipo: "Varejo", data: "2026-05-22", valor: 40 },
+    { name: "Produto 8", qtd: 4, tipo: "Varejo", data: "2026-05-25", valor: 40 },
+    { name: "Produto 9", qtd: 3, tipo: "Varejo", data: "2026-05-26", valor: 30 },
+
+    // Vendas de Junho 2026
+    { name: "Produto 1", qtd: 5, tipo: "Varejo", data: "2026-06-02", valor: 50 },
+    { name: "Produto 2", qtd: 10, tipo: "Atacado", data: "2026-06-05", valor: 100 },
+    { name: "Produto 3", qtd: 8, tipo: "Atacado", data: "2026-06-10", valor: 80 },
+    { name: "Produto 4", qtd: 5, tipo: "Varejo", data: "2026-06-12", valor: 50 },
+    { name: "Produto 5", qtd: 3, tipo: "Varejo", data: "2026-06-15", valor: 30 },
+    { name: "Produto 6", qtd: 2, tipo: "Varejo", data: "2026-06-18", valor: 20 },
+    { name: "Produto 7", qtd: 2, tipo: "Varejo", data: "2026-06-20", valor: 20 },
+    { name: "Produto 8", qtd: 2, tipo: "Varejo", data: "2026-06-22", valor: 20 },
+    { name: "Produto 9", qtd: 1, tipo: "Varejo", data: "2026-06-25", valor: 10 },
+  ], [])
+
+  const ultimasVendas: UltimaVendaItem[] = useMemo(() => [
+    { id: 1, cliente: "Empório Riverside", zona: "Zona Leste", data: "2026-06-05", valor: 485.5, status: "PAGO" },
+    { id: 2, cliente: "Mercadinho Dirceu", zona: "Zona Sudeste", data: "2026-05-14", valor: 212.0, status: "PENDENTE" },
+    { id: 3, cliente: "Parrilla Sul Gourmet", zona: "Zona Sul", data: "2026-04-03", valor: 740.0, status: "PAGO" },
+  ], [])
+
+  const produtosFiltrados = useMemo(() => {
+    return historicoVendasProdutos.filter((item) => {
+      if (!dataInicio && !dataFim) return true
+      if (dataInicio && !dataFim) return item.data >= dataInicio
+      if (!dataInicio && dataFim) return item.data <= dataFim
+      return item.data >= dataInicio && item.data <= dataFim
+    })
+  }, [historicoVendasProdutos, dataInicio, dataFim])
+
+  const ultimasVendasFiltradas = useMemo(() => {
+    return ultimasVendas.filter((venda) => {
+      if (!dataInicio && !dataFim) return true
+      if (dataInicio && !dataFim) return venda.data >= dataInicio
+      if (!dataInicio && dataFim) return venda.data <= dataFim
+      return venda.data >= dataInicio && venda.data <= dataFim
+    })
+  }, [ultimasVendas, dataInicio, dataFim])
+
+  // Meta fixa baseada no faturamento do mês atual
+  const faturamentoMesAtual = useMemo(() => {
+    return historicoVendasProdutos
+      .filter((item) => item.data >= primeiroDiaDoMes && item.data <= hoje)
+      .reduce((acc, curr) => acc + curr.valor, 0)
+  }, [historicoVendasProdutos, primeiroDiaDoMes, hoje])
+
+  // --- PROCESSAMENTO DOS GRÁFICOS ---
+  const dadosAgrupadosGraficos = useMemo(() => {
+    const contagem: Record<string, number> = {}
+    produtosFiltrados.forEach((item) => {
+      contagem[item.name] = (contagem[item.name] || 0) + item.qtd
+    })
+    return Object.keys(contagem).map((name) => ({ name, qtd: contagem[name] }))
+  }, [produtosFiltrados])
+
+  const maisVendidos = useMemo(() => {
+    return [...dadosAgrupadosGraficos].sort((a, b) => b.qtd - a.qtd).slice(0, 5)
+  }, [dadosAgrupadosGraficos])
+  const menosVendidos = useMemo(() => {
+    return [...dadosAgrupadosGraficos].sort((a, b) => a.qtd - b.qtd).slice(0, 5)
+  }, [dadosAgrupadosGraficos])
+
+  const proporcaoVendas = useMemo(() => {
+    let atacadoCount = 0
+    let varejoCount = 0
+    produtosFiltrados.forEach((item) => {
+      if (item.tipo === "Atacado") atacadoCount++
+      else varejoCount++
+    })
+    const total = atacadoCount + varejoCount
+    return [
+      { name: "Atacado", value: atacadoCount, percentage: total > 0 ? `${((atacadoCount / total) * 100).toFixed(1)}%` : "0%", color: "#a4133c" },
+      { name: "Varejo", value: varejoCount, percentage: total > 0 ? `${((varejoCount / total) * 100).toFixed(1)}%` : "0%", color: "#9e475e" },
+    ]
+  }, [produtosFiltrados])
+
+  // --- CÁLCULO KPIs DO PERÍODO ---
+  const totalVendas = useMemo(() => proporcaoVendas.reduce((acc, curr) => acc + curr.value, 0), [proporcaoVendas])
+  const faturamentoPeriodo = useMemo(() => produtosFiltrados.reduce((acc, curr) => acc + curr.valor, 0), [produtosFiltrados])
+  const ticketMedio = useMemo(() => totalVendas > 0 ? faturamentoPeriodo / totalVendas : 0, [faturamentoPeriodo, totalVendas])
+  const formatarMoeda = (valor: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(valor)
+  const porcentagemMeta = metaMensal > 0 ? ((faturamentoMesAtual / metaMensal) * 100).toFixed(1) : "0.0"
+
+  // --- AÇÕES DE FILTRAGEM ---
+  const aplicarFiltroPeriodo = () => {
+    setDataInicio(dataInicioTemp)
+    setDataFim(dataFimTemp)
+    
+    if (dataInicioTemp && dataFimTemp) {
+      setPeriodoTexto(`${formatarDataBR(dataInicioTemp)} - ${formatarDataBR(dataFimTemp)}`)
+    } else if (dataInicioTemp) {
+      setPeriodoTexto(`A partir de ${formatarDataBR(dataInicioTemp)}`)
+    } else if (dataFimTemp) {
+      setPeriodoTexto(`Até ${formatarDataBR(dataFimTemp)}`)
+    } else {
+      setPeriodoTexto("Filtrar por Período")
+    }
+    setIsFilterModalOpen(false)
+  }
+
+  const limparFiltroPeriodo = () => {
+    limparFiltrosGlobal() // Reseta as datas no Contexto de forma limpa para string vazia
+    setDataInicioTemp("")
+    setDataFimTemp("")
+    setIsFilterModalOpen(false)
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-(--bg-primary) font-sans">
@@ -116,18 +234,46 @@ export default function DashboardPage() {
         </h1>
 
         <div className="flex flex-1 flex-col gap-(--spacing-lg) overflow-hidden">
-          {/* Barra de Filtros (Fixa no topo) */}
+          {/* Barra de Filtros */}
           <div className="flex shrink-0 flex-col justify-between gap-(--spacing-md) sm:flex-row sm:items-center">
             <div className="flex flex-wrap items-center gap-(--spacing-ms)">
-              <Button variant="primary" size="md">
+              <Button 
+                variant="primary" 
+                size="md"
+                onClick={() => {
+                  setDataInicioTemp(dataInicio)
+                  setDataFimTemp(dataFim)
+                  setIsFilterModalOpen(true)
+                }}
+              >
                 <CalendarBlankIcon />
-                10 Out. - 29 Nov, 2025
+                {periodoTexto}
               </Button>
-              <Button variant="primary" size="md">
-                <ArrowCounterClockwiseIcon />
-                Restaurar Filtros
-              </Button>
-              <Button variant="primary" size="md">
+              
+              {/* Botão de Limpeza visível para restaurar filtros históricos */}
+              {isFiltroAtivo && (
+                <Button variant="outlined" size="md" title="Limpar filtros e exibir histórico completo" onClick={limparFiltroPeriodo}>
+                  <ArrowCounterClockwiseIcon />
+                  Limpar Filtros
+                </Button>
+              )}
+
+              <Button 
+                variant="primary" 
+                size="md"
+                onClick={() => {
+                  exportarDashboardParaPDF({
+                    dataInicio,
+                    dataFim,
+                    faturamento: formatarMoeda(faturamentoPeriodo),
+                    totalVendas: totalVendas,
+                    ticketMedio: formatarMoeda(ticketMedio),
+                    ultimasVendas: ultimasVendasFiltradas,
+                    maisVendidos: maisVendidos,
+                    proporcaoVendas: proporcaoVendas
+                  })
+                }}
+              >
                 <FileTextIcon />
                 Gerar Relatório
               </Button>
@@ -150,14 +296,13 @@ export default function DashboardPage() {
             <div className="grid shrink-0 grid-cols-1 gap-(--spacing-lg) sm:grid-cols-2 lg:grid-cols-4">
               <div className="flex flex-col justify-between rounded-(--radius-sm) border border-(--border-default)/15 bg-(--bg-surface) p-(--spacing-lg) shadow-(--shadow-md)">
                 <span className="text-body-sm font-medium text-(--txt-secondary)">
-                  Faturamento Mensal
+                  Faturamento no Período
                 </span>
                 <h2 className="text-h2 font-heading mt-(--spacing-sm) font-bold text-(--txt-primary)">
-                  {formatarMoeda(1716.2)}
+                  {formatarMoeda(faturamentoPeriodo)}
                 </h2>
-                <div className="text-body-xs mt-(--spacing-sm) flex items-center gap-(--spacing-xs) font-medium text-(--color-green)">
-                  <TrendUpIcon size={14} />
-                  <span>+3% em relação ao mês passado</span>
+                <div className="text-body-md mt-(--spacing-sm) flex items-center gap-(--spacing-xs) font-medium text-(--txt-secondary)">
+                  <em>Dados filtrados do período</em>
                 </div>
               </div>
 
@@ -166,11 +311,10 @@ export default function DashboardPage() {
                   Total de Vendas
                 </span>
                 <h2 className="text-h2 font-heading mt-(--spacing-sm) font-bold text-(--txt-primary)">
-                  89 vendas
+                  {totalVendas} vendas
                 </h2>
-                <div className="text-body-xs mt-(--spacing-sm) flex items-center gap-(--spacing-xs) font-medium text-(--color-green)">
-                  <TrendUpIcon size={14} />
-                  <span>+1% em relação ao mês passado</span>
+                <div className="text-body-md mt-(--spacing-sm) flex items-center gap-(--spacing-xs) font-medium text-(--txt-secondary)">
+                  <em>Volume movimentado</em>
                 </div>
               </div>
 
@@ -179,17 +323,18 @@ export default function DashboardPage() {
                   Ticket Médio
                 </span>
                 <h2 className="text-h2 font-heading mt-(--spacing-sm) font-bold text-(--txt-primary)">
-                  {formatarMoeda(19.28)}
+                  {formatarMoeda(ticketMedio)}
                 </h2>
-                <div className="text-body-xs mt-(--spacing-sm) flex items-center gap-(--spacing-xs) font-medium text-(--color-red)">
-                  <TrendDownIcon size={14} />
-                  <span>-2% em relação ao mês passado</span>
+                <div className="text-body-md mt-(--spacing-sm) flex items-center gap-(--spacing-xs) font-medium text-(--txt-secondary)">
+                  <em>Média ponderada por venda</em>
                 </div>
               </div>
 
               <div className="flex flex-col justify-between rounded-(--radius-sm) border border-(--border-default)/15 bg-(--bg-surface) p-(--spacing-lg) shadow-(--shadow-md) group">
                 <div className="flex items-center justify-between">
-                  <span className="text-body-sm font-medium text-(--txt-secondary)">Meta do Mês</span>
+                  <span className="text-body-sm font-medium text-(--txt-secondary)">
+                    Meta de {nomeMesAtual.charAt(0).toUpperCase() + nomeMesAtual.slice(1)}
+                  </span>
                   <button 
                     onClick={() => {
                       setMetaTemp(metaMensal.toString())
@@ -445,9 +590,9 @@ export default function DashboardPage() {
                       },
                     },
                   ]}
-                  data={ultimasVendas}
+                  data={ultimasVendasFiltradas}
                   pageSize={3}
-                  emptyValue="Nenhuma venda registrada recentemente."
+                  emptyValue="Nenhuma venda registrada no período selecionado."
                 />
               </div>
 
@@ -478,7 +623,7 @@ export default function DashboardPage() {
                       </span>
                     </div>
                   )}
-                  data={ultimasVendas}
+                  data={ultimasVendasFiltradas}
                   emptyValue="Nenhuma venda registrada."
                 />
               </div>
@@ -487,6 +632,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Modal: Definir Meta do Mês */}
       <Modal
         open={isMetaModalOpen}
         onClose={() => setIsMetaModalOpen(false)}
@@ -502,8 +648,9 @@ export default function DashboardPage() {
             <Button
               variant="primary"
               onClick={() => {
-                // Converte a string para número, mantendo 0 se for inválido/vazio
-                setMetaMensal(Number(metaTemp) || 0)
+                const valor = Number(metaTemp) || 0
+                setMetaMensal(valor)
+                localStorage.setItem("sigbro_meta_mensal", valor.toString())
                 setIsMetaModalOpen(false)
               }}
             >
@@ -527,6 +674,50 @@ export default function DashboardPage() {
           <span className="text-body-xs text-(--txt-secondary) mt-1">
             Isso atualizará o cálculo de progresso na sua tela inicial.
           </span>
+        </div>
+      </Modal>
+
+      {/* Modal: Filtrar por Período */}
+      <Modal
+        open={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        title="Filtrar por Período"
+        footer={
+          <>
+            <Button variant="outlined" onClick={limparFiltroPeriodo} disabled={!dataInicioTemp && !dataFimTemp}>
+              Limpar Filtros
+            </Button>
+            <Button variant="outlined" onClick={() => setIsFilterModalOpen(false)}>Cancelar</Button>
+            <Button
+              variant="primary"
+              onClick={aplicarFiltroPeriodo}
+              disabled={!dataInicioTemp && !dataFimTemp}
+            >
+              Confirmar Filtro
+            </Button>
+          </>
+        }
+      >
+        <div className="grid grid-cols-1 gap-4 py-2 sm:grid-cols-2">
+          <div className="flex flex-col gap-2">
+            <label className="text-body-sm font-semibold text-(--txt-secondary)">Data Inicial</label>
+            <Input 
+              type="date" 
+              value={dataInicioTemp} 
+              onChange={(e) => setDataInicioTemp(e.target.value)} 
+              max={hoje}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-body-sm font-semibold text-(--txt-secondary)">Data Final</label>
+            <Input 
+              type="date" 
+              value={dataFimTemp} 
+              onChange={(e) => setDataFimTemp(e.target.value)} 
+              min={dataInicioTemp || undefined} 
+              max={hoje}
+            />
+          </div>
         </div>
       </Modal>
 
