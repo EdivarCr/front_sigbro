@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useFilter } from "@/context/FilterContext"
+import { useToast } from "@/context/ToastContext"
 import { Breadcrumb } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
 import { Table } from "@/components/ui/table"
@@ -18,18 +19,12 @@ import {
 } from "@phosphor-icons/react"
 
 import { exportarPagamentosParaPDF } from "@/lib/relatorioPagamentos"
-
-interface PagamentoData {
-  id: number
-  cliente: string
-  valor: number
-  data_venda: string
-  data_baixa: string | null
-  status: "PAGO" | "PENDENTE"
-  conta_destino: "INTER" | "TON" | "DINHEIRO" | null
-}
+import { vendaService, type Venda, type FilterVenda } from "@/services/api/vendas.service"
+import { listarClientes, type Cliente } from "@/services/api/cliente.service"
+import { getHojeLocal } from "@/lib/utils"
 
 export default function PagamentosPage() {
+  const { toast } = useToast()
   const [viewMode, setViewMode] = useState<"pendentes" | "historico">("pendentes")
   
   const {
@@ -42,7 +37,33 @@ export default function PagamentosPage() {
     limparFiltrosGlobal
   } = useFilter()
   
-  const hoje = useMemo(() => new Date().toISOString().split("T")[0], [])
+  const hoje = useMemo(() => getHojeLocal(), [])
+
+  const [vendas, setVendas] = useState<Venda[]>([])
+  const [loading, setLoading] = useState(false)
+
+  const [clientes, setClientes] = useState<Cliente[]>([])
+  useEffect(() => {
+    const carregarClientes = async () => {
+      try {
+        const response = await listarClientes({ limit: 1000 })
+        setClientes(response.costumers || [])
+      } catch (error) {
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar os clientes.",
+          variant: "danger"
+        })
+      }
+    }
+    carregarClientes()
+  }, [])
+
+  const obterNomeCliente = (clienteId: number | null) => {
+    if (!clienteId) return "Avulso"
+    const cliente = clientes.find(c => c.id === clienteId)
+    return cliente ? cliente.name : `Cliente #${clienteId}`
+  }
 
   const formatarDataBR = (dataStr: string) => {
     if (!dataStr) return ""
@@ -71,84 +92,111 @@ export default function PagamentosPage() {
     return `${periodoTexto}${statusLabel}`
   }, [periodoTexto, filtroStatus])
 
-  // 3. ESTADOS PARA O MODAL DE BAIXA
+  // Estados para o Modal de Baixa
   const [isModalBaixaOpen, setIsModalBaixaOpen] = useState(false)
-  const [vendaSelecionada, setVendaSelecionada] = useState<PagamentoData | null>(null)
+  const [vendaSelecionada, setVendaSelecionada] = useState<Venda | null>(null)
   const [contaDestino, setContaDestino] = useState<string>("")
   const [erroConta, setErroConta] = useState<string>("")
 
-  // 4. BASE DE DADOS MOCKADA
-  const [pagamentos, setPagamentos] = useState<PagamentoData[]>([
-    { id: 101, cliente: "Mercadinho Dirceu", valor: 212.00, data_venda: "2026-06-04", data_baixa: null, status: "PENDENTE", conta_destino: null },
-    { id: 102, cliente: "Empório Riverside", valor: 485.50, data_venda: "2026-06-05", data_baixa: "2026-06-06", status: "PAGO", conta_destino: "TON" },
-    { id: 103, cliente: "Parrilla Sul Gourmet", valor: 740.00, data_venda: "2026-06-03", data_baixa: "2026-06-03", status: "PAGO", conta_destino: "INTER" },
-    { id: 104, cliente: "Cliente Avulso", valor: 45.00, data_venda: "2026-05-06", data_baixa: "2026-05-06", status: "PAGO", conta_destino: "DINHEIRO" },
-    { id: 105, cliente: "Restaurante Sabor", valor: 320.00, data_venda: "2026-05-07", data_baixa: null, status: "PENDENTE", conta_destino: null },
-  ])
+  // Função que busca os dados na API
+  const carregarVendas = async () => {
+    setLoading(true)
+    try {
+      let payloadFiltros: FilterVenda = {}
+      
+      if (viewMode === "pendentes") {
+        payloadFiltros = { status_pagamento: "PENDENTE" }
+      } else {
+        payloadFiltros = {
+          data_inicio: dataInicio || null,
+          data_fim: dataFim || null,
+          status_pagamento: filtroStatus !== "TODOS" ? (filtroStatus as any) : null,
+          tipo_conta_destino: filtroConta !== "TODOS" ? (filtroConta as any) : null
+        }
+      }
 
-  const vendasPendentes = useMemo(() => {
-    return pagamentos.filter(p => p.status === "PENDENTE")
-  }, [pagamentos])
-  
-  const vendasFiltradas = useMemo(() => {
-    return pagamentos.filter(p => {
-      // Filtro de Status
-      if (filtroStatus !== "TODOS" && p.status !== filtroStatus) return false
-      
-      // Filtro de Conta Destino
-      if (filtroConta !== "TODOS" && p.conta_destino !== filtroConta) return false
-      
-      // Filtro de Período Cronológico (Baseado na data efetiva da movimentação)
-      const dataEfetiva = p.data_baixa || p.data_venda
-      if (dataInicio && dataEfetiva < dataInicio) return false
-      if (dataFim && dataEfetiva > dataFim) return false
-      
-      return true
-    }).sort((a, b) => {
-      const dataA = a.data_baixa || a.data_venda;
-      const dataB = b.data_baixa || b.data_venda;
-      return new Date(dataB).getTime() - new Date(dataA).getTime();
-    })
-  }, [pagamentos, dataInicio, dataFim, filtroStatus, filtroConta])
+      const response = await vendaService.listarVendas(payloadFiltros)
+      setVendas(response.itens || [])
+    } catch (error) {
+      console.error("Erro ao carregar pagamentos:", error)
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os pagamentos.",
+        variant: "danger"
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    carregarVendas()
+  }, [viewMode, dataInicio, dataFim, filtroStatus, filtroConta])
+
+  const vendasPendentes = useMemo(() => vendas.filter(v => v.status_pagamento === "PENDENTE"), [vendas])
+  const vendasHistorico = useMemo(() => vendas, [vendas])
 
   const totais = useMemo(() => {
-    return vendasFiltradas.reduce((acc, curr) => {
-      if (curr.status === "PAGO") {
-        acc.totalRecebido += curr.valor
-        if (curr.conta_destino === "INTER") acc.inter += curr.valor
-        if (curr.conta_destino === "TON") acc.ton += curr.valor
-        if (curr.conta_destino === "DINHEIRO") acc.dinheiro += curr.valor
+    return vendasHistorico.reduce((acc, curr) => {
+      if (curr.status_pagamento === "PAGO") {
+        const valorNum = Number(curr.valor_total) || 0;
+
+        acc.totalRecebido += valorNum
+        if (curr.tipo_conta_destino === "INTER") acc.inter += valorNum
+        if (curr.tipo_conta_destino === "MAQUININHA_TON") acc.ton += valorNum
+        if (curr.tipo_conta_destino === "DINHEIRO") acc.dinheiro += valorNum
       }
       return acc
     }, { totalRecebido: 0, inter: 0, ton: 0, dinheiro: 0 })
-  }, [vendasFiltradas])
+  }, [vendasHistorico])
 
-  const formatarMoeda = (valor: number) => 
-    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(valor)
+  const formatarMoeda = (valor: number | string) => 
+    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(valor))
 
   const formatarData = (dataStr: string) => 
     new Date(dataStr).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
 
-  const abrirModalBaixa = (venda: PagamentoData) => {
+  const abrirModalBaixa = (venda: Venda) => {
     setVendaSelecionada(venda)
     setContaDestino("")
     setErroConta("")
     setIsModalBaixaOpen(true)
   }
 
-  const confirmarBaixa = () => {
+  const confirmarBaixa = async () => {
     if (!contaDestino) {
       setErroConta("Você deve selecionar uma conta de destino.")
       return
     }
-    const dataLiquidacao = new Date().toISOString().split("T")[0]
-    setPagamentos(prev => prev.map(p => 
-      p.id === vendaSelecionada?.id 
-        ? { ...p, status: "PAGO", conta_destino: contaDestino as any, data_baixa: dataLiquidacao } 
-        : p
-    ))
-    setIsModalBaixaOpen(false)
-    setVendaSelecionada(null)
+    if (!vendaSelecionada) return
+
+    try {
+      const dataLiquidacao = getHojeLocal()
+      
+      await vendaService.atualizarVenda(vendaSelecionada.id, {
+        status_pagamento: "PAGO",
+        tipo_conta_destino: contaDestino as any,
+        data_pagamento: dataLiquidacao
+      })
+
+      toast({
+        title: "Sucesso!",
+        description: "Recebimento confirmado e baixado com sucesso.",
+        variant: "success"
+      })
+      
+      setIsModalBaixaOpen(false)
+      setVendaSelecionada(null)
+      carregarVendas()
+      
+    } catch (error) {
+      console.error("Erro ao baixar pagamento:", error)
+      toast({
+        title: "Erro na Baixa",
+        description: "Houve um problema ao confirmar o recebimento.",
+        variant: "danger"
+      })
+    }
   }
 
   const aplicarFiltroPeriodo = () => {
@@ -189,10 +237,10 @@ export default function PagamentosPage() {
   }
 
   const columnsBase = [
-    { key: "id", label: "Cód.", render: (row: PagamentoData) => <span className="text-(--txt-secondary)">#{row.id}</span> },
-    { key: "cliente", label: "Cliente", render: (row: PagamentoData) => <span className="font-semibold">{row.cliente}</span> },
-    { key: "data_venda", label: "Data da Venda", render: (row: PagamentoData) => formatarData(row.data_venda) },
-    { key: "valor", label: "Valor", render: (row: PagamentoData) => <span className="font-bold">{formatarMoeda(row.valor)}</span> },
+    { key: "id", label: "Cód.", render: (row: Venda) => <span className="text-(--txt-secondary)">#{row.id}</span> },
+    { key: "cliente_id", label: "Cliente", render: (row: Venda) => <span>{obterNomeCliente(row.cliente_id)}</span> },
+    { key: "data_venda", label: "Data da Venda", render: (row: Venda) => formatarData(row.data_venda) },
+    { key: "valor_total", label: "Valor", render: (row: Venda) => <span>{formatarMoeda(row.valor_total)}</span> },
   ]
 
   return (
@@ -203,7 +251,7 @@ export default function PagamentosPage() {
           { label: "Gestão de Pagamentos" }
         ]}
       />
-    
+      
       <div className="flex flex-1 min-h-0 flex-col gap-(--spacing-md) overflow-hidden py-(--spacing-md)">
         <div className="flex items-center justify-between shrink-0">
           <h1 className="text-h1 font-heading font-bold text-(--txt-primary)">Pagamentos e Recebimentos</h1>
@@ -240,7 +288,7 @@ export default function PagamentosPage() {
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col gap-(--spacing-lg) overflow-y-auto pr-2 Logan pb-4">
+          <div className="flex-1 flex flex-col gap-(--spacing-lg) overflow-y-auto pr-2 pb-4">
             
             {/* ABA 1: BAIXAS PENDENTES */}
             {viewMode === "pendentes" && (
@@ -257,7 +305,7 @@ export default function PagamentosPage() {
                       { 
                         key: "acoes", 
                         label: "Ação", 
-                        render: (row: PagamentoData) => (
+                        render: (row: Venda) => (
                           <Button 
                             variant="primary" 
                             size="sm" 
@@ -271,7 +319,7 @@ export default function PagamentosPage() {
                     ]}
                     data={vendasPendentes}
                     pageSize={10}
-                    emptyValue="Nenhum pagamento pendente no momento. Tudo em dia!"
+                    emptyValue={loading ? "Carregando..." : "Nenhum pagamento pendente no momento. Tudo em dia!"}
                   />
                 </div>
               </div>
@@ -306,20 +354,30 @@ export default function PagamentosPage() {
                     )}
                   </div>
                   
-                  <Button 
+                 <Button 
                     variant="outlined" 
                     size="md"
                     onClick={() => {
+                      const vendasMapeadasParaPDF = vendasHistorico.map(venda => ({
+                        id: venda.id,
+                        cliente: obterNomeCliente(venda.cliente_id), 
+                        valor: Number(venda.valor_total) || 0, 
+                        data_venda: venda.data_venda,
+                        data_baixa: venda.data_pagamento || null,
+                        status: venda.status_pagamento,
+                        conta_destino: venda.tipo_conta_destino === "MAQUININHA_TON" ? "TON" : venda.tipo_conta_destino
+                      }))
+
                       exportarPagamentosParaPDF({
                         dataInicio,
                         dataFim,
                         filtroStatus,
-                        filtroConta,
+                        filtroConta: filtroConta === "MAQUININHA_TON" ? "TON" : filtroConta,
                         totalLiquidado: formatarMoeda(totais.totalRecebido),
                         totalInter: formatarMoeda(totais.inter),
                         totalTon: formatarMoeda(totais.ton),
                         totalDinheiro: formatarMoeda(totais.dinheiro),
-                        vendasFiltradas: vendasFiltradas
+                        vendasFiltradas: vendasMapeadasParaPDF as any 
                       })
                     }}
                   >
@@ -353,37 +411,37 @@ export default function PagamentosPage() {
                     columns={[
                       ...columnsBase,
                       { 
-                        key: "status", 
+                        key: "status_pagamento", 
                         label: "Status", 
-                        render: (row: PagamentoData) => (
+                        render: (row: Venda) => (
                           <span className={`inline-flex items-center justify-center text-body-sm rounded-full px-2.5 py-0.5 font-medium leading-none ${
-                            row.status === "PAGO" ? "bg-(--color-green)/15 text-(--color-green)" : "bg-(--color-blue)/15 text-(--color-blue)"
+                            row.status_pagamento === "PAGO" ? "bg-(--color-green)/15 text-(--color-green)" : "bg-(--color-blue)/15 text-(--color-blue)"
                           }`}>
-                            {row.status === "PAGO" ? "Liquidado" : "Pendente"}
+                            {row.status_pagamento === "PAGO" ? "Liquidado" : "Pendente"}
                           </span>
                         ) 
                       },
                       { 
-                        key: "data_baixa", 
+                        key: "data_pagamento", 
                         label: "Data Liquidação", 
-                        render: (row: PagamentoData) => row.data_baixa ? formatarData(row.data_baixa) : "-" 
+                        render: (row: Venda) => row.data_pagamento ? formatarData(row.data_pagamento) : "-" 
                       },
                       { 
-                        key: "conta", 
+                        key: "tipo_conta_destino", 
                         label: "Conta Destino", 
-                        render: (row: PagamentoData) => (
+                        render: (row: Venda) => (
                           <span className="text-(--txt-secondary) font-medium">
-                            {row.conta_destino === "INTER" && "Banco Inter"}
-                            {row.conta_destino === "TON" && "Ton"}
-                            {row.conta_destino === "DINHEIRO" && "Dinheiro"}
-                            {!row.conta_destino && "-"}
+                            {row.tipo_conta_destino === "INTER" && "Banco Inter"}
+                            {row.tipo_conta_destino === "MAQUININHA_TON" && "Ton"}
+                            {row.tipo_conta_destino === "DINHEIRO" && "Dinheiro"}
+                            {!row.tipo_conta_destino && "-"}
                           </span>
                         ) 
                       },
                     ]}
-                    data={vendasFiltradas}
+                    data={vendasHistorico}
                     pageSize={10}
-                    emptyValue="Nenhum pagamento encontrado para este critério."
+                    emptyValue={loading ? "Carregando histórico..." : "Nenhum pagamento encontrado para este critério."}
                   />
                 </div>
               </div>
@@ -410,11 +468,13 @@ export default function PagamentosPage() {
             <div className="bg-(--bg-sidebar) p-4 rounded-sm border border-(--border-default)/50 flex justify-between items-center">
               <div>
                 <p className="text-body-sm text-(--txt-secondary)">Cliente</p>
-                <p className="font-bold text-(--txt-primary)">{vendaSelecionada.cliente}</p>
+                <p className="text-(--txt-primary)">
+                  {obterNomeCliente(vendaSelecionada.cliente_id)}
+                </p>
               </div>
               <div className="text-right">
                 <p className="text-body-sm text-(--txt-secondary)">Valor a Receber</p>
-                <p className="text-h3 font-heading font-bold text-(--color-green)">{formatarMoeda(vendaSelecionada.valor)}</p>
+                <p className="text-h3 font-heading font-bold text-(--color-green)">{formatarMoeda(vendaSelecionada.valor_total)}</p>
               </div>
             </div>
 
@@ -424,7 +484,7 @@ export default function PagamentosPage() {
                 placeholder="Onde o dinheiro caiu?"
                 options={[
                   { label: "Banco Inter (Transferência/Pix)", value: "INTER" },
-                  { label: "Maquininha Ton (Cartão)", value: "TON" },
+                  { label: "Maquininha Ton (Cartão)", value: "MAQUININHA_TON" },
                   { label: "Dinheiro Físico (Caixa)", value: "DINHEIRO" },
                 ]}
                 value={contaDestino}
@@ -484,12 +544,11 @@ export default function PagamentosPage() {
               options={[
                 { label: "Todas as Contas", value: "TODOS" },
                 { label: "Banco Inter", value: "INTER" },
-                { label: "Maquininha Ton", value: "TON" },
+                { label: "Maquininha Ton", value: "MAQUININHA_TON" },
                 { label: "Dinheiro (Físico)", value: "DINHEIRO" },
               ]}
               value={filtroContaTemp}
               onValueChange={setFiltroContaTemp}
-              // Se está pendente, o dinheiro não entrou em nenhuma conta ainda
               disabled={filtroStatusTemp === "PENDENTE"} 
             />
           </div>
