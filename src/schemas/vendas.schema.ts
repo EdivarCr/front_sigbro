@@ -3,11 +3,13 @@ import { z } from "zod"
 export const FormaPagamentoEnum = z.enum(["PIX", "DINHEIRO", "CARTAO_CREDITO", "CARTAO_DEBITO", "BOLETO"])
 export const StatusPagamentoEnum = z.enum(["PAGO", "PENDENTE", "CANCELADO"])
 export const TipoVendaEnum = z.enum(["ATACADO", "VAREJO"])
+export const TipoContaDestinoEnum = z.enum(["INTER", "MAQUININHA_TON", "DINHEIRO"])
 export const UnidadeMedidaEnum = z.enum(["kg", "g", "l", "ml", "un"])
 
 export type FormaPagamento = z.infer<typeof FormaPagamentoEnum>
 export type StatusPagamento = z.infer<typeof StatusPagamentoEnum>
 export type TipoVenda = z.infer<typeof TipoVendaEnum>
+export type TipoContaDestino = z.infer<typeof TipoContaDestinoEnum>
 export type UnidadeMedida = z.infer<typeof UnidadeMedidaEnum>
 
 export const itemVendaSchema = z.object({
@@ -25,6 +27,7 @@ export const vendaSchema = z.object({
   tipo_venda: TipoVendaEnum.default("ATACADO"),
   forma_pagamento: FormaPagamentoEnum.nullable().optional(),
   status_pagamento: StatusPagamentoEnum.default("PAGO"),
+  tipo_conta_destino: TipoContaDestinoEnum.nullable().optional(),
   
   valor_subtotal: z.number().min(0, "Subtotal inválido"),
   valor_desconto: z.number().min(0).default(0),

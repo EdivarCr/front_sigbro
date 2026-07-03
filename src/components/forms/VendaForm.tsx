@@ -55,6 +55,7 @@ export function VendaForm({ onSubmit, defaultValues, mode, clientesDisponiveis, 
       valor_desconto: 0,
       valor_total: 0,
       data_venda: new Date().toISOString().split("T")[0], 
+      tipo_conta_destino: null,
       itens: [],
       ...defaultValues,
     },
@@ -81,6 +82,16 @@ export function VendaForm({ onSubmit, defaultValues, mode, clientesDisponiveis, 
   const [isItemModalOpen, setIsItemModalOpen] = useState(false)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   
+  const watchedStatusPagamento = watch("status_pagamento")
+  const isPago = watchedStatusPagamento === "PAGO"
+
+  // Limpa a conta destino se o usuário mudar para PENDENTE no momento do cadastro
+  useEffect(() => {
+    if (!isPago) {
+      setValue("tipo_conta_destino", null, { shouldValidate: true })
+    }
+  }, [isPago, setValue])
+
   // Form isolado apenas para o modal de adicionar/editar item
   const { 
     register: regItem, 
@@ -280,17 +291,26 @@ export function VendaForm({ onSubmit, defaultValues, mode, clientesDisponiveis, 
             name="status_pagamento"
             control={control}
             render={({ field, fieldState }) => (
-              <SelectField
-                label="Status do Pagamento"
-                required
-                options={[
-                  { label: "Pago", value: "PAGO" },
-                  { label: "Pendente", value: "PENDENTE" },
-                ]}
-                value={field.value}
-                onValueChange={field.onChange}
-                error={fieldState.error?.message}
-              />
+              <div className="flex flex-col gap-1">
+                <SelectField
+                  label="Status do Pagamento"
+                  required
+                  options={[
+                    { label: "Pago", value: "PAGO" },
+                    { label: "Pendente", value: "PENDENTE" },
+                  ]}
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  error={fieldState.error?.message}
+                  disabled={mode === 'edit'}
+                />
+                
+                {field.value === "PENDENTE" && mode === "edit" && (
+                  <span className="text-body-sm text-(--color-blue) font-medium mt-1">
+                    Para registrar o recebimento, acesse o menu Pagamentos &gt; Baixas Pendentes.
+                  </span>
+                )}
+              </div>
             )}
           />
 
@@ -298,22 +318,53 @@ export function VendaForm({ onSubmit, defaultValues, mode, clientesDisponiveis, 
             name="forma_pagamento"
             control={control}
             render={({ field, fieldState }) => (
-              <SelectField
-                label="Forma de Pagamento"
-                placeholder="Ex: PIX, Cartão..."
-                options={[
-                  { label: "PIX", value: "PIX" },
-                  { label: "Dinheiro", value: "DINHEIRO" },
-                  { label: "Cartão de Crédito", value: "CARTAO_CREDITO" },
-                  { label: "Cartão de Débito", value: "CARTAO_DEBITO" },
-                  { label: "Boleto", value: "BOLETO" },
-                ]}
-                value={field.value || ""}
-                onValueChange={field.onChange}
-                error={fieldState.error?.message}
-              />
+              <div className="flex flex-col gap-1">
+                <SelectField
+                  label="Forma de Pagamento"
+                  placeholder="Ex: PIX, Cartão..."
+                  options={[
+                    { label: "PIX", value: "PIX" },
+                    { label: "Dinheiro", value: "DINHEIRO" },
+                    { label: "Cartão de Crédito", value: "CARTAO_CREDITO" },
+                    { label: "Cartão de Débito", value: "CARTAO_DEBITO" },
+                    { label: "Boleto", value: "BOLETO" },
+                  ]}
+                  value={field.value || ""}
+                  onValueChange={field.onChange}
+                  error={fieldState.error?.message}
+                  disabled={isPago} 
+                />
+                {isPago && (
+                  <span className="text-body-sm text-(--color-blue) font-medium">
+                    A forma de pagamento é travada em vendas liquidadas.
+                  </span>
+                )}
+              </div>
             )}
           />
+
+          {isPago && (
+            <Controller
+              name="tipo_conta_destino"
+              control={control}
+              render={({ field, fieldState }) => (
+                <SelectField
+                  label="Conta de Destino"
+                  placeholder="Onde o dinheiro entrou?"
+                  required={isPago}
+                  options={[
+                    { label: "Banco Inter (Transferência/Pix)", value: "INTER" },
+                    { label: "Maquininha Ton (Cartão)", value: "MAQUININHA_TON" },
+                    { label: "Dinheiro Físico (Caixa)", value: "DINHEIRO" },
+                  ]}
+                  value={field.value || ""}
+                  onValueChange={field.onChange}
+                  error={fieldState.error?.message}
+                  disabled={mode === 'edit'}
+                />
+              )}
+            />
+          )}
 
           <Input
             label="Data da Venda"

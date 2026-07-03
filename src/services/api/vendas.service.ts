@@ -6,6 +6,8 @@ import {
   type UnidadeMedida 
 } from "@/schemas/vendas.schema"
 
+export type TipoContaDestino = "INTER" | "MAQUININHA_TON" | "DINHEIRO";
+
 export interface ItemVenda {
   id: number
   venda_id: number
@@ -28,6 +30,7 @@ export interface Venda {
   valor_desconto: number
   data_venda: string
   data_pagamento: string | null
+  tipo_conta_destino: TipoContaDestino | null
   deleted_at: string | null
   itens?: ItemVenda[]
 }
@@ -51,6 +54,7 @@ export interface VendaCreate {
   valor_desconto?: number
   data_venda?: string | Date
   data_pagamento?: string | Date | null
+  tipo_conta_destino?: TipoContaDestino | null
   itens: ItemVendaCreate[]
 }
 
@@ -64,6 +68,7 @@ export interface VendaUpdate {
   valor_subtotal?: number
   valor_desconto?: number
   data_pagamento?: string | Date | null
+  tipo_conta_destino?: TipoContaDestino | null
 }
 
 export interface VendaListResponse {
@@ -82,6 +87,7 @@ export interface FilterVenda {
   cliente_id?: number | null
   forma_pagamento?: FormaPagamento | null
   tipo_venda?: TipoVenda | null
+  tipo_conta_destino?: TipoContaDestino | null
 }
 
 // Funções da API
@@ -109,6 +115,7 @@ export async function criarVenda(data: any) {
     valor_total: data.valor_total,
     data_venda: data.data_venda,
     data_pagamento: data.data_pagamento,
+    tipo_conta_destino: data.tipo_conta_destino || null,
     itens: data.itens,
   }
   
