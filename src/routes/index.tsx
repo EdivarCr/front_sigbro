@@ -7,7 +7,6 @@ import { ProtectedRoute } from "@/components/shared/ProtectedRoute"
 import { AuthLayout } from "@/components/layout/AuthLayout"
 
 // Páginas públicas
-import CatalogoPage from "@/pages/Catalogo"
 import LoginPage from "@/pages/Login"
 
 // Páginas protegidas
@@ -44,6 +43,8 @@ import CadastrarVendaPage from "@/pages/Vendas/cadastrar"
 import DetalhesVendaPage from "@/pages/Vendas/detalhes"
 import EditarVendaPage from "@/pages/Vendas/editar"
 
+import PagamentosPage from "@/pages/Pagamentos"
+
 export const router = createBrowserRouter([
   // Rotas públicas
   {
@@ -53,16 +54,7 @@ export const router = createBrowserRouter([
       { path: "/reset-password", element: <ResetPasswordPage /> },
     ],
   },
-  {
-    element: <PublicLayout />,
-    children: [
-      {
-        path: "/catalogo",
-        element: <CatalogoPage />,
-      },
-    ],
-  },
-
+  
   // Rotas protegidas (Originais)
   {
     element: <ProtectedRoute />,
@@ -123,6 +115,7 @@ export const router = createBrowserRouter([
               { path: "editar/:id", element: <EditarVendaPage /> },
             ],
           },
+          { path: "/pagamentos", element: <PagamentosPage /> },
         ],
       },
     ],
