@@ -73,7 +73,7 @@ export async function criarCliente(data: any) {
     endereco: data.endereco
   }
   
-  const response = await apiClient.post<Cliente>("/clientes/", payload)
+  const response = await apiClient.post<Cliente>("/clientes", payload)
   return response.data
 }
 
