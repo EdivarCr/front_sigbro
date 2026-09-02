@@ -1,7 +1,6 @@
 import { Outlet } from "react-router-dom"
 import { Sidebar } from "./Sidebar"
 import { SidebarProvider, useSidebar } from "@/context/SidebarContext"
-import { useBreakpoint } from "@/hooks/useBreakpoint"
 import { ListIcon } from "@phosphor-icons/react"
 import { useTheme } from "@/context/ThemeContext"
 

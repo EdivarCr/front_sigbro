@@ -109,7 +109,7 @@ export default function EditarProdutoPage(){
       <div className="flex flex-col gap-6 py-8">
         <h1 className="text-h1 text-(--txt-primary)">Editar Produto</h1>
         <div className="flex justify-center">
-          <div className="flex flex-col w-full rounded-sm bg-(--bg-surface) p-6 shadow-md border border-(--bg-sidebar)">
+          <div className={`flex flex-col w-full rounded-sm bg-(--bg-surface) p-6 shadow-md border border-(--bg-sidebar) ${isSubmitting ? "opacity-50 pointer-events-none" : ""}`}>
             <ProductForm 
               onSubmit={handleEdit}
               defaultValues={valoresIniciais}

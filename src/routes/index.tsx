@@ -2,7 +2,6 @@ import { createBrowserRouter } from "react-router-dom"
 
 // Layouts
 import { MainLayout } from "@/components/layout/MainLayout"
-import { PublicLayout } from "@/components/layout/PublicLayout"
 import { ProtectedRoute } from "@/components/shared/ProtectedRoute"
 import { AuthLayout } from "@/components/layout/AuthLayout"
 
