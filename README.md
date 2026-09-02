@@ -6,15 +6,15 @@
 
 ## 🚀 Stack Tecnológica
 
-| Tecnologia | Uso |
-|---|---|
-| **React 19** (Vite) | Framework de UI |
-| **TypeScript** | Tipagem estática |
-| **Tailwind CSS v4** | Estilização utility-first |
-| **shadcn/ui** | Componentes reutilizáveis |
-| **Supabase** | Autenticação e banco de dados |
-| **React Router v7** | Navegação SPA |
-| **Axios** | Cliente HTTP |
+| Tecnologia          | Uso                           |
+| ------------------- | ----------------------------- |
+| **React 19** (Vite) | Framework de UI               |
+| **TypeScript**      | Tipagem estática              |
+| **Tailwind CSS v4** | Estilização utility-first     |
+| **shadcn/ui**       | Componentes reutilizáveis     |
+| **Supabase**        | Autenticação e banco de dados |
+| **React Router v7** | Navegação SPA                 |
+| **Axios**           | Cliente HTTP                  |
 
 ---
 
@@ -84,16 +84,16 @@ front_sigbro/
 
 ## 🏗️ Arquitetura de Rotas
 
-| Rota | Tipo | Página |
-|---|---|---|
-| `/catalogo` | Pública | Catálogo de pimentas |
-| `/login` | Pública | Tela de login |
-| `/` | Protegida | Dashboard |
-| `/dashboard` | Protegida | Dashboard |
-| `/produtos` | Protegida | Gestão de produtos |
-| `/vendas` | Protegida | Registro de vendas |
-| `/estoque` | Protegida | Controle de estoque |
-| `/pdvs` | Protegida | Pontos de venda |
+| Rota         | Tipo      | Página               |
+| ------------ | --------- | -------------------- |
+| `/catalogo`  | Pública   | Catálogo de pimentas |
+| `/login`     | Pública   | Tela de login        |
+| `/`          | Protegida | Dashboard            |
+| `/dashboard` | Protegida | Dashboard            |
+| `/produtos`  | Protegida | Gestão de produtos   |
+| `/vendas`    | Protegida | Registro de vendas   |
+| `/estoque`   | Protegida | Controle de estoque  |
+| `/pdvs`      | Protegida | Pontos de venda      |
 
 ### Fluxo de Autenticação
 
@@ -110,10 +110,10 @@ O alias `@/` aponta para `./src/`, possibilitando imports limpos:
 
 ```tsx
 // Em vez de:
-import { useAuth } from '../../../context/AuthContext'
+import { useAuth } from "../../../context/AuthContext"
 
 // Use:
-import { useAuth } from '@/context/AuthContext'
+import { useAuth } from "@/context/AuthContext"
 ```
 
 ---

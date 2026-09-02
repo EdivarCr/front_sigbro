@@ -1,14 +1,38 @@
-import { NavLink, useLocation } from 'react-router-dom'
-import { useBreakpoint } from '@/hooks/useBreakpoint'
-import { useSidebar } from '@/context/SidebarContext'
-import { useEffect } from 'react'
+import { NavLink, useLocation, useNavigate } from "react-router-dom"
+import { useBreakpoint } from "@/hooks/useBreakpoint"
+import { useAuth } from "@/context/AuthContext"
+import { useSidebar } from "@/context/SidebarContext"
+import { useEffect, useState } from "react"
+import { useTheme } from "@/context/ThemeContext"
+import {
+  UserIcon,
+  ChartPieSliceIcon,
+  ChartLineUpIcon,
+  PackageIcon,
+  StackIcon,
+  BasketIcon,
+  UsersIcon,
+  StorefrontIcon,
+  ReceiptIcon,
+  CreditCardIcon,
+  SignOutIcon,
+  CaretDoubleLeftIcon,
+} from "@phosphor-icons/react"
+import logo from "@/assets/images/base-logo-v2.svg"
+import logoDark from "@/assets/images/base-alt-logo-v2.svg"
+import { Modal } from "../ui/modal"
+import { Button } from "../ui/button"
 
 const navItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: '📊' },
-  { to: '/produtos', label: 'Produtos', icon: '🌶️' },
-  { to: '/vendas', label: 'Vendas', icon: '💰' },
-  { to: '/estoque', label: 'Estoque', icon: '📦' },
-  { to: '/pdvs', label: 'PDVs', icon: '🏪' },
+  { to: "/", label: "Tela Inicial", icon: ChartPieSliceIcon },
+  { to: "/lucratividade", label: "Painel de Lucros", icon: ChartLineUpIcon },
+  { to: "/produtos", label: "Gestão de Produtos", icon: PackageIcon },
+  { to: "/estoque", label: "Controle de Estoque", icon: StackIcon },
+  { to: "/insumos", label: "Insumos", icon: BasketIcon },
+  { to: "/clientes", label: "Clientes", icon: UsersIcon },
+  { to: "/pdvs", label: "Pontos de Venda", icon: StorefrontIcon },
+  { to: "/vendas", label: "Histórico de Vendas", icon: ReceiptIcon },
+  { to: "/pagamentos", label: "Pagamentos", icon: CreditCardIcon },
 ]
 
 /**
@@ -22,96 +46,162 @@ export function Sidebar() {
   const { isOpen, close } = useSidebar()
   const location = useLocation()
 
-  // Fecha a sidebar mobile ao navegar
   useEffect(() => {
-    if (shouldCollapseSidebar) {
-      close()
-    }
+    if (shouldCollapseSidebar) close()
   }, [location.pathname, shouldCollapseSidebar, close])
 
-  // Desktop: sidebar fixa
   if (!shouldCollapseSidebar) {
+    if (!isOpen) return null
     return (
-      <aside className="flex w-64 flex-col border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-        <SidebarHeader />
-        <SidebarNav />
+      <aside className="flex w-64 shrink-0 flex-col bg-(--bg-sidebar) shadow-sm">
+        <SidebarContent />
       </aside>
     )
   }
 
-  // Mobile/Tablet: overlay
   return (
     <>
-      {/* Backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity"
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
           onClick={close}
           aria-hidden="true"
         />
       )}
-
-      {/* Sidebar panel */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out dark:bg-gray-900 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-(--bg-sidebar) shadow-2xl transition-transform duration-300 ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        {/* Header com botão de fechar */}
-        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-800">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🌶️</span>
-            <h1 className="text-lg font-bold text-gray-900 dark:text-white">SisBro</h1>
-          </div>
-          <button
-            onClick={close}
-            className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-            aria-label="Fechar menu"
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        <SidebarNav />
+        <SidebarContent onClose={close} showClose />
       </aside>
     </>
   )
 }
 
-// ---------------------------------------------------------------------------
-// Sub-componentes internos
-// ---------------------------------------------------------------------------
+function SidebarContent({
+  onClose,
+  showClose,
+}: {
+  onClose?: () => void
+  showClose?: boolean
+}) {
+  const { isDark } = useTheme()
 
-function SidebarHeader() {
-  return (
-    <div className="flex h-16 items-center gap-2 border-b border-gray-200 px-6 dark:border-gray-800">
-      <span className="text-2xl">🌶️</span>
-      <h1 className="text-lg font-bold text-gray-900 dark:text-white">SisBro</h1>
-    </div>
-  )
-}
+  const { signOut } = useAuth()
+  const navigate = useNavigate()
+  const [logOutModalOpen, setLogoutModalOpen] = useState(false)
 
-function SidebarNav() {
+  const { user } = useAuth()
+  const nome = user?.user_metadata?.full_name
+    ?? user?.user_metadata?.name
+    ?? user?.email
+    ?? "-"
+
   return (
-    <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-      {navItems.map(({ to, label, icon }) => (
+    <div className="flex flex-1 flex-col gap-8 overflow-y-auto px-6 pt-6">
+      <div className="flex items-center justify-between">
+        {/* Logo */}
+        <img
+          src={isDark ? logoDark : logo}
+          alt="SigBró"
+          className="h-auto w-40"
+        />
+
+        {showClose && (
+          <button
+            onClick={onClose}
+            className="cursor-pointer rounded-sm p-2 text-(--txt-secondary) hover:bg-(--bg-sidebar-hover)"
+          >
+            <CaretDoubleLeftIcon size={24} />
+          </button>
+        )}
+      </div>
+
+      <div className="flex flex-1 flex-col gap-6">
+        {/* Perfil */}
         <NavLink
-          key={to}
-          to={to}
+          to="/perfil"
           className={({ isActive }) =>
-            `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+            `flex items-center gap-3 rounded-r-sm px-3 py-2 transition-colors ${
               isActive
-                ? 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300'
-                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white'
+                ? "border-l-2 border-(--txt-link) text-(--txt-link)"
+                : "border-transparent text-(--txt-secondary) hover:bg-(--bg-sidebar-hover) hover:text-(--txt-primary)"
             }`
           }
         >
-          <span className="text-lg">{icon}</span>
-          {label}
+          <UserIcon size={24} />
+          <div className="flex flex-col w-full min-w-0">
+            <span className="text-body-md text-(--txt-primary) block truncate">
+              {nome}
+            </span>
+            <span className="text-label text-(--txt-secondary) block truncate">
+              {user?.email ?? "-"}
+            </span>
+          </div>
         </NavLink>
-      ))}
-    </nav>
+
+        {/* Itens de navegação */}
+        <nav className="flex flex-col gap-1">
+          {navItems.map(({ to, label, icon: Icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                `flex items-center gap-3 rounded-r-sm border-l-2 px-3 py-2 transition-colors ${
+                  isActive
+                    ? "border-((--txt-link)) border-l-2 text-(--txt-link)"
+                    : "border-transparent text-(--txt-secondary) hover:bg-(--bg-sidebar-hover) hover:text-(--txt-primary)"
+                }`
+              }
+            >
+              <Icon size={24} />
+              <span className="text-body-md">{label}</span>
+            </NavLink>
+          ))}
+        </nav>
+      </div>
+
+      {/* Sair */}
+      <div className="border-t border-(--border-default) py-4">
+        <button
+          className="flex w-full cursor-pointer items-center gap-3 rounded-sm px-3 py-2 text-(--txt-secondary) transition-colors hover:bg-(--bg-sidebar-hover) hover:text-(--color-red)"
+          onClick={() => setLogoutModalOpen(true)}
+        >
+          <SignOutIcon size={24} />
+          <span className="text-body-md">Sair</span>
+        </button>
+      </div>
+      <Modal
+        key={logOutModalOpen ? "logout-open" : "logout-closed"}
+        open={logOutModalOpen}
+        onClose={() => {
+          setLogoutModalOpen(false)
+        }}
+        title="Sair"
+        description="Tem certeza que deseja sair do sistema?"
+        footer={
+          <>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setLogoutModalOpen(false)
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={async () => {
+                await signOut()
+                navigate("/login")
+              }}
+            >
+              Sair
+            </Button>
+          </>
+        }
+      ></Modal>
+    </div>
   )
 }

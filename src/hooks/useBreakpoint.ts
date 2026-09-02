@@ -1,4 +1,4 @@
-import { useMediaQuery } from './useMediaQuery'
+import { useMediaQuery } from "./useMediaQuery"
 
 /**
  * Breakpoints alinhados com Tailwind CSS.
@@ -12,11 +12,11 @@ import { useMediaQuery } from './useMediaQuery'
  * | 2xl        | 1536px    | 2xl:            |
  */
 export const breakpoints = {
-  sm: '(min-width: 640px)',
-  md: '(min-width: 768px)',
-  lg: '(min-width: 1024px)',
-  xl: '(min-width: 1280px)',
-  '2xl': '(min-width: 1536px)',
+  sm: "(min-width: 640px)",
+  md: "(min-width: 768px)",
+  lg: "(min-width: 1024px)",
+  xl: "(min-width: 1280px)",
+  "2xl": "(min-width: 1536px)",
 } as const
 
 export type BreakpointKey = keyof typeof breakpoints
@@ -36,7 +36,7 @@ export function useBreakpoint() {
   const md = useMediaQuery(breakpoints.md)
   const lg = useMediaQuery(breakpoints.lg)
   const xl = useMediaQuery(breakpoints.xl)
-  const xxl = useMediaQuery(breakpoints['2xl'])
+  const xxl = useMediaQuery(breakpoints["2xl"])
 
   return {
     // Breakpoints individuais (>= breakpoint)
@@ -44,7 +44,7 @@ export function useBreakpoint() {
     md,
     lg,
     xl,
-    '2xl': xxl,
+    "2xl": xxl,
 
     // Aliases semânticos
     /** Tela < 768px (celulares) */

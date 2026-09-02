@@ -1,20 +1,20 @@
-import { RouterProvider } from 'react-router-dom'
-import { AuthProvider } from '@/context/AuthContext'
-import { CartProvider } from '@/context/CartContext'
-import { router } from '@/routes'
+import { RouterProvider } from "react-router-dom"
+import { AuthProvider } from "@/context/AuthContext"
+import { FilterProvider } from "@/context/FilterContext"
+import { router } from "@/routes"
 
 /**
- * App — Ponto de entrada da aplicação.
+ * App — Ponto de entrada estrutural da aplicação.
  *
  * Estrutura de providers:
- *   AuthProvider → CartProvider → RouterProvider
+ * AuthProvider → FilterProvider → RouterProvider
  */
 export default function App() {
   return (
     <AuthProvider>
-      <CartProvider>
+      <FilterProvider>
         <RouterProvider router={router} />
-      </CartProvider>
+      </FilterProvider>
     </AuthProvider>
   )
 }

@@ -1,10 +1,14 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import type { User, Session } from '@supabase/supabase-js'
-import { supabase } from '@/services/supabase/client'
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react"
+import type { User, Session } from "@supabase/supabase-js"
+import { supabase } from "@/services/supabase/client"
 
-// ---------------------------------------------------------------------------
 // Tipos
-// ---------------------------------------------------------------------------
 interface AuthContextData {
   user: User | null
   session: Session | null
@@ -12,14 +16,10 @@ interface AuthContextData {
   signOut: () => Promise<void>
 }
 
-// ---------------------------------------------------------------------------
 // Contexto
-// ---------------------------------------------------------------------------
 const AuthContext = createContext<AuthContextData>({} as AuthContextData)
 
-// ---------------------------------------------------------------------------
 // Provider
-// ---------------------------------------------------------------------------
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
@@ -34,12 +34,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
 
     // Escuta mudanças de autenticação (login, logout, refresh)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session)
-        setUser(session?.user ?? null)
-      }
-    )
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+    })
 
     return () => subscription.unsubscribe()
   }, [])
@@ -57,13 +57,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 }
 
-// ---------------------------------------------------------------------------
 // Hook de conveniência
-// ---------------------------------------------------------------------------
 export function useAuth() {
   const context = useContext(AuthContext)
   if (!context) {
-    throw new Error('useAuth deve ser usado dentro de um AuthProvider')
+    throw new Error("useAuth deve ser usado dentro de um AuthProvider")
   }
   return context
 }
