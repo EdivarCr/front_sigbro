@@ -1,132 +1,131 @@
-# 🌶️ SigBro v2.0 — Sistema Pimenta Dr. Broa (Front-end)
+<div align="center">
+  <img src="src/assets/images/base-alt-logo-v2.svg" alt="SIGBRÓ Logo" width="350" />
 
-**SPA para gestão de produção e vendas de pimentas artesanais.**
+  <sub><strong>Sistema de Gestão de Estoque e Finanças para Produção de Pimentas Artesanais</strong></sub>
 
----
-
-## 🚀 Stack Tecnológica
-
-| Tecnologia          | Uso                           |
-| ------------------- | ----------------------------- |
-| **React 19** (Vite) | Framework de UI               |
-| **TypeScript**      | Tipagem estática              |
-| **Tailwind CSS v4** | Estilização utility-first     |
-| **shadcn/ui**       | Componentes reutilizáveis     |
-| **Supabase**        | Autenticação e banco de dados |
-| **React Router v7** | Navegação SPA                 |
-| **Axios**           | Cliente HTTP                  |
+  <p>
+    <a href="https://react.dev/"><img src="https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React 19" /></a>
+    <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" /></a>
+    <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" /></a>
+    <a href="https://supabase.com/"><img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" /></a>
+  </p>
+</div>
 
 ---
 
-## 📦 Guia de Início
+## ⚡ Visão Geral
+
+O **SIGBRÓ** é uma aplicação web (SPA) desenvolvida para digitalizar e otimizar o fluxo de produção, controle de estoque e gestão financeira de um cliente comercial real no ramo de pimentas artesanais (B-R-Ó-Bró). 
+
+Desenvolvido para substituir o controle descentralizado por planilhas, o sistema oferece um painel administrativo seguro com métricas de lucratividade, gestão de insumos, pontos de venda (PDVs), controle de pagamentos e um catálogo público de produtos.
+
+---
+
+## 🚀 Stack Tecnológica e Arquitetura
+
+O projeto foi construído utilizando as ferramentas mais modernas do ecossistema React, com foco em tipagem estrita, componentização escalável e integrações em nuvem:
+
+| Categoria | Tecnologias Utilizadas |
+| :--- | :--- |
+| **Framework & Core** | **React 19** (Vite), **TypeScript**, **React Router v7** |
+| **UI & Estilização** | **Tailwind CSS v4**, **shadcn/ui**, Componentes Radix UI |
+| **Backend & Auth** | **Supabase** (PostgreSQL, Authentication via Row Level Security) |
+| **Integrações** | **Axios** (Cliente HTTP configurado com interceptors) |
+| **Estado & Validação** | Context API (React), Zod (Schemas e Validação de Formulários) |
+
+---
+
+## 🏗️ Estrutura de Diretórios
+
+A arquitetura do projeto foi desenhada para manter a separação de responsabilidades (Clean Code), isolando lógicas de autenticação, serviços de API e componentes de interface:
+
+```text
+front_sigbro/
+├── public/                 # Favicons e assets servidos diretamente
+├── src/
+│   ├── assets/             # Imagens e SVGs (logos, ícones)
+│   ├── components/         # Componentes reutilizáveis
+│   │   ├── forms/          # Inputs genéricos e controle de formulários
+│   │   ├── layout/         # Layouts base (MainLayout, Sidebar, Navbar)
+│   │   ├── shared/         # Componentes globais (Rotas Protegidas, Modais)
+│   │   └── ui/             # Componentes baseados em shadcn/ui (Botões, Cards, etc.)
+│   ├── context/            # Gerenciamento de estado global (AuthContext, etc.)
+│   ├── hooks/              # Custom React Hooks
+│   ├── lib/                # Funções utilitárias e configurações de bibliotecas
+│   ├── pages/              # Módulos do Sistema e Telas (Dashboards e CRUDs)
+│   │   ├── Clientes/
+│   │   ├── Dashboard/
+│   │   ├── DashboardLucratividade/
+│   │   ├── Estoque/
+│   │   ├── Insumos/
+│   │   ├── Login/
+│   │   ├── PDVs/
+│   │   ├── Pagamentos/
+│   │   ├── Perfil/
+│   │   ├── Produtos/
+│   │   ├── ResetPassword/
+│   │   └── Vendas/
+│   ├── routes/             # Configuração e mapeamento do React Router
+│   ├── schemas/            # Schemas de validação de dados (Zod)
+│   ├── services/           # Comunicação externa
+│   │   ├── api/            # Instâncias e requisições Axios
+│   │   └── supabase/       # Cliente e configurações do Supabase
+│   ├── styles/             # Estilos globais (.css) e configurações do Tailwind
+│   ├── App.tsx             # Componente raiz (Providers + Router)
+│   └── main.tsx            # Ponto de entrada (Entry point)
+├── .env.example            # Template de variáveis de ambiente
+├── components.json         # Configuração do shadcn/ui
+├── package.json            # Dependências e scripts do projeto
+├── tsconfig.json           # Configurações estritas do TypeScript
+└── vite.config.ts          # Configuração do build e path aliases (@/)
+```
+
+---
+
+## 🔒 Arquitetura de Rotas e Autenticação
+
+A aplicação possui um fluxo de navegação aninhada gerenciada pelo `react-router-dom` (v7), estruturada em módulos (Listagem, Cadastro, Detalhes, Edição).
+
+### 🔑 Rotas de Autenticação (Públicas)
+Renderizadas através do `AuthLayout`, não exigem sessão ativa.
+* `/login` — Tela de login do administrador.
+* `/reset-password` — Fluxo de recuperação de senha.
+
+### 🛡️ Rotas Administrativas (Protegidas)
+As rotas abaixo estão envoltas no componente `ProtectedRoute` (que valida a sessão com o Supabase via `AuthContext`) e renderizadas dentro do `MainLayout`.
+
+| Módulo | Endpoint Raiz (Listagem) | Sub-rotas (Ações CRUD) |
+| :--- | :--- | :--- |
+| **Dashboards** | `/` (Geral) | `/lucratividade` (Métricas Financeiras) |
+| **Produtos** | `/produtos` | `/cadastrar`, `/:id` (Detalhes), `/editar/:id` |
+| **Insumos** | `/insumos` | `/:id` (Detalhes) |
+| **Estoque** | `/estoque` | `/cadastrar`, `/:id` (Detalhes), `/editar/:id` |
+| **Clientes** | `/clientes` | `/cadastrar`, `/:id` (Detalhes), `/editar/:id` |
+| **PDVs** | `/pdvs` | `/cadastrar`, `/:id` (Detalhes), `/editar/:id` |
+| **Vendas** | `/vendas` | `/cadastrar`, `/:id` (Detalhes), `/editar/:id` |
+| **Utilitários** | `/pagamentos` | `/perfil` |
+
+---
+
+## 📦 Guia de Instalação e Execução
+
+Para rodar o projeto localmente, certifique-se de ter o **Node.js** instalado (v18+ recomendado).
 
 ```bash
-# 1. Clone o repositório
-git clone <url-do-repo>
+# 1. Clone este repositório
+git clone [https://github.com/fel0psmya/SIGBRO.git](https://github.com/fel0psmya/SIGBRO.git)
 cd front_sigbro
 
-# 2. Instale as dependências
+# 2. Instale todas as dependências do projeto
 npm install
 
-# 3. Configure variáveis de ambiente
+# 3. Configure as variáveis de ambiente
 cp .env.example .env
-# Preencha VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY e VITE_API_URL
+# Abra o arquivo .env e adicione suas chaves:
+# VITE_SUPABASE_URL=sua-url
+# VITE_SUPABASE_ANON_KEY=sua-chave-anon
 
-# 4. Inicie o servidor de desenvolvimento
+# 4. Inicie o servidor de desenvolvimento do Vite
 npm run dev
 ```
-
-O servidor estará disponível em `http://localhost:5173`.
-
----
-
-## 🗂️ Organização do Projeto
-
-```
-front_sigbro/
-├── public/                     # Arquivos estáticos servidos diretamente
-├── src/
-│   ├── assets/                 # Imagens, ícones e recursos estáticos
-│   ├── components/
-│   │   ├── forms/              # Componentes de formulário reutilizáveis
-│   │   ├── layout/             # Layouts (MainLayout, PublicLayout, Sidebar)
-│   │   ├── shared/             # Componentes compartilhados (ProtectedRoute, etc.)
-│   │   └── ui/                 # Componentes shadcn/ui (Button, Dialog, etc.)
-│   ├── context/                # Contextos React globais
-│   │   ├── AuthContext.tsx     #   └─ Autenticação via Supabase
-│   │   └── CartContext.tsx     #   └─ Carrinho de compras
-│   ├── hooks/                  # Hooks customizados reutilizáveis
-│   │   └── useSupabaseQuery.ts #   └─ Consultas genéricas ao Supabase
-│   ├── pages/                  # Páginas/módulos do sistema
-│   │   ├── Catalogo/           #   └─ Catálogo público de produtos
-│   │   ├── Dashboard/          #   └─ Painel principal (protegido)
-│   │   ├── Estoque/            #   └─ Controle de estoque
-│   │   ├── Login/              #   └─ Tela de autenticação
-│   │   ├── PDVs/               #   └─ Pontos de venda
-│   │   ├── Produtos/           #   └─ Gestão de produtos
-│   │   └── Vendas/             #   └─ Registro de vendas
-│   ├── routes/                 # Configuração centralizada do React Router
-│   │   └── index.tsx           #   └─ Definição de rotas públicas/protegidas
-│   ├── services/               # Clientes de API e serviços externos
-│   │   ├── api/client.ts       #   └─ Axios com interceptors de auth
-│   │   └── supabase/client.ts  #   └─ Cliente Supabase singleton
-│   ├── App.tsx                 # Componente raiz (Providers + Router)
-│   ├── main.tsx                # Ponto de entrada React
-│   └── index.css               # Estilos globais + Tailwind
-├── .env.example                # Template de variáveis de ambiente
-├── index.html                  # HTML entry point
-├── vite.config.ts              # Config Vite (aliases, plugins)
-├── tsconfig.json               # Config TypeScript (paths, JSX)
-└── package.json                # Dependências e scripts
-```
-
----
-
-## 🏗️ Arquitetura de Rotas
-
-| Rota         | Tipo      | Página               |
-| ------------ | --------- | -------------------- |
-| `/catalogo`  | Pública   | Catálogo de pimentas |
-| `/login`     | Pública   | Tela de login        |
-| `/`          | Protegida | Dashboard            |
-| `/dashboard` | Protegida | Dashboard            |
-| `/produtos`  | Protegida | Gestão de produtos   |
-| `/vendas`    | Protegida | Registro de vendas   |
-| `/estoque`   | Protegida | Controle de estoque  |
-| `/pdvs`      | Protegida | Pontos de venda      |
-
-### Fluxo de Autenticação
-
-1. Usuário acessa rota protegida → `ProtectedRoute` verifica sessão
-2. Sem sessão → redireciona para `/login`
-3. Com sessão → renderiza `MainLayout` com `Sidebar` + conteúdo
-4. Rotas públicas usam `PublicLayout` com header simplificado
-
----
-
-## 🔧 Aliases de Path
-
-O alias `@/` aponta para `./src/`, possibilitando imports limpos:
-
-```tsx
-// Em vez de:
-import { useAuth } from "../../../context/AuthContext"
-
-// Use:
-import { useAuth } from "@/context/AuthContext"
-```
-
----
-
-## 📝 Próximos Passos
-
-- [ ] Instalar e configurar **shadcn/ui** (`npx shadcn-ui@latest init`)
-- [ ] Implementar autenticação real no `LoginPage`
-- [ ] Conectar dados do Supabase nas páginas
-- [ ] Criar componentes de formulário para CRUD de produtos
-- [ ] Implementar catálogo público consumindo dados reais
-- [ ] Adicionar testes (Vitest + Testing Library)
-
----
-
-> **SisBro v2.0** — Feito com 🌶️ por Dr. Broa
+O servidor estará acessível em `http://localhost:5173`.
